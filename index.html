@@ -88,10 +88,6 @@ textarea#editor{flex:1;padding:16px;background:#0d1117;color:#c9d1d9;font-family
 #preview code{background:#f6f8fa;padding:2px 6px;border-radius:4px;font-family:'Consolas',monospace;font-size:.85em;color:#cf222e;border:1px solid #e1e4e8}
 #preview pre{background:#f6f8fa;padding:14px;border-radius:6px;overflow-x:auto;border:1px solid #e1e4e8;margin:.8rem 0}
 #preview pre code{background:none;border:none;color:#24292f;padding:0}
-/* TikZ block */
-.tikz-block{display:flex;justify-content:center;align-items:center;margin:1rem 0;min-height:40px}
-.tikz-loading{color:#888;font-size:.85em;font-style:italic;padding:8px 14px;background:#f6f8fa;border:1px dashed #ccc;border-radius:6px}
-.tikz-block svg{max-width:100%;height:auto;display:block}
 #preview blockquote{border-left:4px solid var(--accent,#0550AE);padding:4px 0 4px 16px;margin:.8rem 0;color:#57606a;font-style:italic}
 #preview table{border-collapse:collapse;margin:1rem 0;width:100%}
 #preview th,#preview td{border:1px solid #d0d7de;padding:7px 14px;text-align:left}
@@ -508,7 +504,7 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
 <!-- ══════════════════════ STATUS BAR ══════════════════════ -->
 <div class="statusbar">
   <span id="status-msg" class="info">Sẵn sàng</span>
-  <span style="margin-left:auto;opacity:.6">**bold** *italic* `code` #H1 ##H2 | $toán học$ | $$khối$$ | <span style="color:#58a6ff">:::2</span> / <span style="color:#58a6ff">:::3</span> câu nhiều cột → <span style="color:#58a6ff">:::</span> kết thúc | <span style="color:#ffa657">===</span> ngắt slide | <span style="color:#7ee8a2">:::kẻ 5 ngang</span> dòng kẻ | <span style="color:#d2a8ff">```tikz</span> hình vẽ</span>
+  <span style="margin-left:auto;opacity:.6">**bold** *italic* `code` #H1 ##H2 | $toán học$ | $$khối$$ | <span style="color:#58a6ff">:::2</span> / <span style="color:#58a6ff">:::3</span> câu nhiều cột → <span style="color:#58a6ff">:::</span> kết thúc | <span style="color:#ffa657">===</span> ngắt slide | <span style="color:#7ee8a2">:::kẻ 5 ngang</span> dòng kẻ</span>
 </div>
 
 <!-- ══════════════════════ TRỘN ĐỀ MODAL ══════════════════════ -->
@@ -610,8 +606,6 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
-<script>window.tikzjax_load_only=true;</script>
-<script async src="https://tikzjax.com/v1/tikzjax.js"></script>
 <script>
 'use strict';
 // ═══════════════════════════════════════════════════════════
@@ -845,51 +839,6 @@ function processRuledLines(md){
 
 // Preprocessor kết hợp dùng cho preview + PDF
 function preprocessAll(md){ return processRuledLines(preprocessMultiCol(md)); }
-
-// ── TikZ support ──
-// Encode tikz code thành data-src để tránh HTML escaping
-function processTikzInMd(md){
-  return md.replace(/^```tikz[ \t]*\r?\n([\s\S]*?)^```[ \t]*$/mg,(_, code)=>{
-    const b64=btoa(unescape(encodeURIComponent(code)));
-    return `<div class="tikz-block" data-tikz="${b64}"><div class="tikz-loading">⏳ Đang render TikZ…</div></div>`;
-  });
-}
-
-// Sau khi set innerHTML, tìm các tikz-block và inject <script type="text/tikz">
-function activateTikzBlocks(container){
-  container.querySelectorAll('.tikz-block[data-tikz]').forEach(div=>{
-    try{
-      const code=decodeURIComponent(escape(atob(div.dataset.tikz)));
-      div.removeAttribute('data-tikz');
-      div.innerHTML='<div class="tikz-loading">⏳ Đang render TikZ…</div>';
-      const sc=document.createElement('script');
-      sc.type='text/tikz';
-      sc.textContent=code;
-      div.appendChild(sc);
-      // TikZJax MutationObserver hoặc manual trigger
-      if(window.TikZJax&&window.TikZJax.render){
-        window.TikZJax.render(sc).then(()=>{
-          const tikzSvg=div.querySelector('svg');
-          if(tikzSvg) div.querySelector('.tikz-loading')?.remove();
-        }).catch(()=>{});
-      }
-    }catch(e){div.innerHTML='<div class="tikz-loading" style="color:red">⚠ Lỗi TikZ: '+e.message+'</div>';}
-  });
-}
-
-// Setup marked renderer cho tikz code block
-marked.use({
-  renderer:{
-    code({text,lang}){
-      if(lang==='tikz'){
-        const raw=text.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'");
-        const b64=btoa(unescape(encodeURIComponent(raw)));
-        return `<div class="tikz-block" data-tikz="${b64}"><div class="tikz-loading">⏳ Đang render TikZ…</div></div>`;
-      }
-      return false;
-    }
-  }
-});
 
 // Tạo bảng 2 cột cho Word (kẻ đường thẳng chia đôi)
 function makeRuledLineTable2Col(n){
@@ -1127,14 +1076,6 @@ function md2docxBody(md){
     if(/^[-*_]{3,}$/.test(line.trim())){xml+=para('',{bottomBorder:true});i++;continue;}
     // Blockquote
     if(line.startsWith('> ')){let bq='';while(i<lines.length&&lines[i].startsWith('> ')){bq+=lines[i].slice(2)+' ';i++;}xml+=para(lineContent(bq.trim()),{leftBorder:true,indent:360});continue;}
-    // TikZ block (trước code block chung)
-    if(line.trim().startsWith('```tikz')){
-      i++;
-      while(i<lines.length&&!lines[i].trim().startsWith('```'))i++;
-      if(i<lines.length)i++;
-      xml+=para(`<w:r><w:rPr><w:i/><w:iCs/><w:color w:val="888888"/></w:rPr><w:t>[Hình vẽ TikZ – chỉ hiển thị trong Preview, không xuất được sang Word]</w:t></w:r>`,{center:true});
-      continue;
-    }
     // Code block
     if(line.startsWith('```')){i++;while(i<lines.length&&!lines[i].startsWith('```')){xml+=para(`<w:r><w:rPr><w:rFonts w:ascii="Consolas" w:hAnsi="Consolas"/><w:sz w:val="18"/><w:szCs w:val="18"/><w:color w:val="24292F"/></w:rPr><w:t xml:space="preserve">${xEsc(lines[i])}</w:t></w:r>`,{style:'CodeBlock',noAfter:true});i++;}if(i<lines.length)i++;continue;}
     // UL
@@ -1393,12 +1334,7 @@ function openPdfWindow(autoPrint){
   const h3c='#'+getCssHex('h3-hex','5B9BD5');
   const thc='#'+getCssHex('th-hex','DDEEFF');
 
-  const rawContentHtml=(document.getElementById('preview-content')||{}).innerHTML||'';
-  // Serialize bất kỳ <script type="text/tikz"> còn lại (chưa render) thành data-tikz
-  const contentHtml=rawContentHtml.replace(/<div class="tikz-block"[^>]*>\s*<script type="text\/tikz">([\s\S]*?)<\/script>\s*<\/div>/g,(_,code)=>{
-    const b64=btoa(unescape(encodeURIComponent(code)));
-    return `<div class="tikz-block" data-tikz="${b64}"><div class="tikz-loading">⏳ Đang render TikZ…</div></div>`;
-  });
+  const contentHtml=(document.getElementById('preview-content')||{}).innerHTML||'';
   const wmStyle=buildWatermarkStyle(s.hdrMain,s.wmCode,s.wmOpacity);
 
   const hdrHtml=(s.hdrMain||s.hdrSub)?`
@@ -1435,12 +1371,7 @@ function openPdfWindow(autoPrint){
 <meta charset="UTF-8">
 <title>${esc(s.hdrMain||'Tài liệu')}</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" onload="cssOk=true;go()">
-<script>window.tikzjax_load_only=true;</script>
-<script async src="https://tikzjax.com/v1/tikzjax.js"></script>
 <style>
-.tikz-block{display:flex;justify-content:center;align-items:center;margin:1rem 0;min-height:40px;page-break-inside:avoid}
-.tikz-loading{color:#888;font-size:.85em;font-style:italic;padding:6px 12px;border:1px dashed #ccc;border-radius:5px}
-.tikz-block svg{max-width:100%;height:auto;display:block}
 @page{size:A4 portrait;margin:${mg}mm ${mgSide}mm}
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-print-color-adjust:exact;color-adjust:exact;print-color-adjust:exact}
@@ -1515,31 +1446,9 @@ tr{page-break-inside:avoid}
 <script>
 var cssOk=false;
 var AUTO=${autoPrint?'true':'false'};
-function go(){if(cssOk&&AUTO){
-  var hasTikz=document.querySelectorAll('.tikz-block[data-tikz]').length>0;
-  setTimeout(function(){window.print();},hasTikz?3500:280);
-}}
+function go(){if(cssOk&&AUTO)setTimeout(function(){window.print();},280);}
 window.onafterprint=function(){if(AUTO)window.close();};
 setTimeout(function(){cssOk=true;go();},1800);
-// Activate tikz blocks after DOM ready
-document.addEventListener('DOMContentLoaded',function(){
-  document.querySelectorAll('.tikz-block[data-tikz]').forEach(function(div){
-    try{
-      var code=decodeURIComponent(escape(atob(div.dataset.tikz)));
-      div.removeAttribute('data-tikz');
-      div.innerHTML='<div class="tikz-loading">⏳ Đang render TikZ…</div>';
-      var sc=document.createElement('script');
-      sc.type='text/tikz';
-      sc.textContent=code;
-      div.appendChild(sc);
-      if(window.TikZJax&&window.TikZJax.render){
-        window.TikZJax.render(sc).then(function(){
-          var l=div.querySelector('.tikz-loading');if(l)l.remove();
-        });
-      }
-    }catch(e){div.textContent='⚠ TikZ error: '+e.message;}
-  });
-});
 <\/script>
 </head>
 <body>
@@ -2226,7 +2135,6 @@ function doPreview(){
   try{
     content.innerHTML=marked.parse(preprocessAll(md));
     renderMathInElement(content,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false,errorColor:'#f85149'});
-    activateTikzBlocks(content);
   }catch(e){content.innerHTML='<span style="color:red">Lỗi: '+e.message+'</span>';}
 
   // ── Header ──
