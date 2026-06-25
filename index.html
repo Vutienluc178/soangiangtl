@@ -1,0 +1,3208 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Markdown + Math → Word Exporter</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<style>
+/* ── Reset & Base ── */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0d1117;color:#e6edf3;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── Header Bar ── */
+.topbar{background:#161b22;padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #30363d;flex-shrink:0;flex-wrap:wrap}
+.topbar-title{font-size:.95rem;font-weight:700;color:#58a6ff;letter-spacing:.3px;margin-right:6px;white-space:nowrap}
+.topbar-title span{color:#f0883e}
+.sep{width:1px;height:24px;background:#30363d;margin:0 4px}
+.btn{border:none;padding:6px 13px;border-radius:6px;cursor:pointer;font-size:.8rem;font-weight:600;transition:.15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:#238636;color:#fff}.btn-primary:hover{background:#2ea043}
+.btn-ghost{background:#21262d;color:#8b949e;border:1px solid #30363d}.btn-ghost:hover{background:#30363d;color:#e6edf3}
+.btn-active{background:#1f4082;color:#8ab4f8;border:1px solid #388bfd}
+.btn-tpl{padding:5px 11px;font-size:.78rem}
+
+/* Template color buttons */
+.tpl-btn{width:22px;height:22px;border-radius:50%;border:2px solid #444;cursor:pointer;transition:.15s;flex-shrink:0}
+.tpl-btn:hover,.tpl-btn.active{border-color:#fff;transform:scale(1.15)}
+#tpl-blue{background:linear-gradient(135deg,#1F3864,#2E74B5)}
+#tpl-green{background:linear-gradient(135deg,#1B4332,#52B788)}
+#tpl-red{background:linear-gradient(135deg,#7B0C28,#E63946)}
+#tpl-purple{background:linear-gradient(135deg,#3B1060,#8B5CF6)}
+#tpl-teal{background:linear-gradient(135deg,#0D4F4F,#14B8A6)}
+#tpl-amber{background:linear-gradient(135deg,#6B3A00,#D97706)}
+#tpl-rose{background:linear-gradient(135deg,#7B1040,#F43F5E)}
+#tpl-slate{background:linear-gradient(135deg,#1E293B,#475569)}
+
+/* Template dropdown */
+.tpl-select{background:#21262d;color:#c9d1d9;border:1px solid #30363d;border-radius:6px;padding:5px 10px;font-size:.8rem;cursor:pointer;outline:none}
+.tpl-select:hover{border-color:#58a6ff}
+
+/* ── Settings Panel ── */
+#settings-panel{background:#0d1117;border-bottom:1px solid #21262d;flex-shrink:0;overflow:hidden;transition:max-height .3s ease;max-height:0}
+#settings-panel.open{max-height:200px}
+.settings-inner{padding:10px 16px;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.sf-group{display:flex;flex-direction:column;gap:4px;min-width:180px}
+.sf-group label{font-size:.72rem;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.sf-input{background:#161b22;border:1px solid #30363d;border-radius:5px;padding:5px 9px;color:#c9d1d9;font-size:.82rem;outline:none;width:100%}
+.sf-input:focus{border-color:#58a6ff}
+.sf-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sf-check{display:flex;align-items:center;gap:6px;font-size:.82rem;color:#8b949e;cursor:pointer}
+.sf-check input[type=checkbox]{accent-color:#58a6ff;width:14px;height:14px}
+.sf-select{background:#161b22;border:1px solid #30363d;border-radius:5px;padding:5px 8px;color:#c9d1d9;font-size:.8rem;outline:none}
+.sf-select:focus{border-color:#58a6ff}
+
+/* ── Main Split ── */
+.main{display:flex;flex:1;overflow:hidden}
+.panel{display:flex;flex-direction:column;overflow:hidden;min-width:160px}
+.panel-hdr{padding:5px 14px;font-size:.75rem;color:#8b949e;border-bottom:1px solid #21262d;flex-shrink:0;display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.editor-area{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#0d1117}
+.editor-area .panel-hdr{background:#161b22}
+textarea#editor{flex:1;padding:16px;background:#0d1117;color:#c9d1d9;font-family:'Cascadia Code','Consolas','Fira Code',monospace;font-size:.87rem;border:none;outline:none;resize:none;line-height:1.75;tab-size:2;white-space:pre-wrap}
+.divider{width:5px;background:#21262d;cursor:col-resize;flex-shrink:0;transition:.1s}
+.divider:hover{background:#388bfd}
+
+/* ── Preview ── */
+.preview-panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.preview-panel .panel-hdr{background:#f6f8fa;color:#57606a;border-bottom:1px solid #d0d7de}
+#preview-wrap{flex:1;overflow-y:auto;background:#f0f0f0;padding:16px}
+#preview{background:#fff;max-width:800px;margin:0 auto;padding:32px 40px;box-shadow:0 2px 12px rgba(0,0,0,.15);min-height:400px;position:relative}
+
+/* Preview header/footer decoration */
+#preview-doc-header{border-bottom:2px solid var(--accent);padding-bottom:10px;margin-bottom:20px;text-align:center;display:none}
+#preview-doc-header.visible{display:block}
+#preview-doc-header .hdr-main{font-size:1rem;font-weight:700;color:var(--h1-color)}
+#preview-doc-header .hdr-sub{font-size:.85rem;color:#666}
+#preview-doc-footer{border-top:1px solid #ccc;padding-top:8px;margin-top:20px;display:none;text-align:center;font-size:.8rem;color:#888}
+#preview-doc-footer.visible{display:flex;justify-content:space-between;align-items:center}
+
+/* ── Preview Content Styles ── */
+#preview{font-family:'Times New Roman',Georgia,serif;font-size:1rem;line-height:1.8;color:#1c1e21}
+#preview h1{font-size:1.8rem;font-weight:700;margin:1.2rem 0 .6rem;color:var(--h1-color,#1F3864);border-bottom:2px solid var(--accent,#0550AE);padding-bottom:6px}
+#preview h2{font-size:1.4rem;font-weight:700;margin:1rem 0 .5rem;color:var(--h2-color,#2E74B5)}
+#preview h3{font-size:1.15rem;font-weight:600;margin:.8rem 0 .4rem;color:var(--h3-color,#5B9BD5)}
+#preview h4{font-size:1rem;font-weight:600;margin:.6rem 0 .3rem;color:#444}
+#preview p{margin:.5rem 0}
+#preview ul,#preview ol{margin:.5rem 0 .5rem 2rem}
+#preview li{margin:.2rem 0}
+#preview code{background:#f6f8fa;padding:2px 6px;border-radius:4px;font-family:'Consolas',monospace;font-size:.85em;color:#cf222e;border:1px solid #e1e4e8}
+#preview pre{background:#f6f8fa;padding:14px;border-radius:6px;overflow-x:auto;border:1px solid #e1e4e8;margin:.8rem 0}
+#preview pre code{background:none;border:none;color:#24292f;padding:0}
+#preview blockquote{border-left:4px solid var(--accent,#0550AE);padding:4px 0 4px 16px;margin:.8rem 0;color:#57606a;font-style:italic}
+#preview table{border-collapse:collapse;margin:1rem 0;width:100%}
+#preview th,#preview td{border:1px solid #d0d7de;padding:7px 14px;text-align:left}
+#preview th{background:var(--th-bg,#DDEEFF);font-weight:600;color:#24292f}
+#preview tr:nth-child(even) td{background:#fbfcfd}
+#preview hr{border:none;border-top:2px solid #e1e4e8;margin:1.2rem 0}
+#preview .katex-display{margin:1rem 0}
+
+/* ── Status ── */
+.statusbar{padding:4px 14px;background:#161b22;font-size:.72rem;color:#8b949e;border-top:1px solid #21262d;flex-shrink:0;display:flex;gap:12px;align-items:center}
+.statusbar .ok{color:#3fb950}.statusbar .err{color:#f85149}.statusbar .info{color:#58a6ff}
+
+/* ── Themes ── */
+body.theme-blue{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;--th-bg:#DDEEFF;--h1-hex:1F3864;--h2-hex:2E74B5;--h3-hex:5B9BD5;--accent-hex:0550AE;--th-hex:DDEEFF;--border-hex:30363d;--tbar-active:#1f4082}
+body.theme-green{--h1-color:#1B4332;--h2-color:#2D6A4F;--h3-color:#40916C;--accent:#2D6A4F;--th-bg:#D8F3DC;--h1-hex:1B4332;--h2-hex:2D6A4F;--h3-hex:40916C;--accent-hex:2D6A4F;--th-hex:D8F3DC;--tbar-active:#1B4332}
+body.theme-red{--h1-color:#7B0C28;--h2-color:#C1121F;--h3-color:#E63946;--accent:#C1121F;--th-bg:#FFE5E8;--h1-hex:7B0C28;--h2-hex:C1121F;--h3-hex:E63946;--accent-hex:C1121F;--th-hex:FFE5E8;--tbar-active:#7B0C28}
+body.theme-purple{--h1-color:#3B1060;--h2-color:#7C3AED;--h3-color:#A78BFA;--accent:#6D28D9;--th-bg:#EDE9FE;--h1-hex:3B1060;--h2-hex:7C3AED;--h3-hex:A78BFA;--accent-hex:6D28D9;--th-hex:EDE9FE;--tbar-active:#3B1060}
+body.theme-teal{--h1-color:#0D4F4F;--h2-color:#0F766E;--h3-color:#14B8A6;--accent:#0D9488;--th-bg:#CCFBF1;--h1-hex:0D4F4F;--h2-hex:0F766E;--h3-hex:14B8A6;--accent-hex:0D9488;--th-hex:CCFBF1;--tbar-active:#0D4F4F}
+body.theme-amber{--h1-color:#6B3A00;--h2-color:#B45309;--h3-color:#D97706;--accent:#92400E;--th-bg:#FEF3C7;--h1-hex:6B3A00;--h2-hex:B45309;--h3-hex:D97706;--accent-hex:92400E;--th-hex:FEF3C7;--tbar-active:#6B3A00}
+body.theme-rose{--h1-color:#7B1040;--h2-color:#BE185D;--h3-color:#EC4899;--accent:#9D174D;--th-bg:#FCE7F3;--h1-hex:7B1040;--h2-hex:BE185D;--h3-hex:EC4899;--accent-hex:9D174D;--th-hex:FCE7F3;--tbar-active:#7B1040}
+body.theme-slate{--h1-color:#1E293B;--h2-color:#334155;--h3-color:#475569;--accent:#0F172A;--th-bg:#E2E8F0;--h1-hex:1E293B;--h2-hex:334155;--h3-hex:475569;--accent-hex:0F172A;--th-hex:E2E8F0;--tbar-active:#1E293B}
+body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;--th-bg:#DDEEFF;--h1-hex:1F3864;--h2-hex:2E74B5;--h3-hex:5B9BD5;--accent-hex:0550AE;--th-hex:DDEEFF;--tbar-active:#1f4082}
+
+/* ── Answer Column Preview ── */
+#preview{ position:relative }
+#answer-col-bar{
+  position:absolute; top:0; right:0; bottom:0;
+  display:none; /* shown by JS */
+  border-left:2px solid var(--accent);
+  background:#fafcff;
+  overflow:hidden;
+  flex-direction:column;
+}
+#answer-col-bar.visible{ display:flex }
+.acb-header{
+  flex-shrink:0;
+  text-align:center;
+  font-size:.65rem;
+  font-weight:800;
+  letter-spacing:3px;
+  color:var(--accent);
+  padding:6px 4px;
+  border-bottom:1.5px solid var(--accent);
+  background:rgba(255,255,255,.95);
+  text-transform:uppercase;
+}
+.acb-lines{
+  flex:1;
+  /* repeating horizontal ruled lines */
+  background-image:repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 27px,
+    #c8d8ea 27px,
+    #c8d8ea 28px
+  );
+  background-size:100% 28px;
+  background-position:0 8px;
+}
+/* ── Math Toolbar ── */
+#math-toolbar{background:#0d1117;border-bottom:1px solid #21262d;flex-shrink:0;overflow:hidden;transition:max-height .28s cubic-bezier(.4,0,.2,1);max-height:0}
+#math-toolbar.open{max-height:140px;overflow-y:auto}
+.mtb-row{display:flex;align-items:center;gap:3px;padding:5px 10px;flex-wrap:wrap}
+.mtb-sep{width:1px;height:20px;background:#30363d;margin:0 5px;flex-shrink:0;align-self:center}
+.mtb-lbl{font-size:.65rem;color:#58a6ff;font-weight:700;letter-spacing:.6px;text-transform:uppercase;white-space:nowrap;flex-shrink:0;margin-right:1px;opacity:.85}
+.mtb-btn{
+  background:#161b22;border:1px solid #30363d;border-radius:5px;
+  color:#c9d1d9;cursor:pointer;padding:2px 7px;
+  min-width:28px;height:28px;
+  display:inline-flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:.12s;position:relative;
+}
+.mtb-btn:hover{background:#21262d;border-color:#388bfd;color:#fff;z-index:1;box-shadow:0 0 0 1px #388bfd44}
+.mtb-btn:active{transform:scale(.92)}
+/* KaTeX scale inside toolbar buttons */
+.mtb-btn .katex{font-size:.78em!important;line-height:1.2}
+.mtb-btn .katex-html{white-space:nowrap}
+
+/* ── Multi-column question blocks (:::2 / :::3) ── */
+.mc-2col{columns:2;column-gap:2rem;column-rule:1px dashed #b8c8d8;margin:.5rem 0}
+.mc-3col{columns:3;column-gap:1.4rem;column-rule:1px dashed #b8c8d8;margin:.5rem 0}
+.mc-2col p,.mc-3col p{break-inside:avoid;margin:.2rem 0}
+.mc-label{font-size:.7rem;font-weight:700;letter-spacing:2px;color:var(--accent);opacity:.6;margin-bottom:3px;text-transform:uppercase}
+/* ── Dòng kẻ học sinh (:::kẻ N kiểu) ── */
+.ruled-lines{display:block;margin:2px 0}
+.ruled-lines .rl{display:block}
+.rl-ngang .rl{border-bottom:1px solid rgba(0,0,0,.18);height:9mm}
+.rl-rong  .rl{border-bottom:1px solid rgba(0,0,0,.18);height:14mm}
+.rl-dut   .rl{border-bottom:1px dashed rgba(0,0,0,.22);height:9mm}
+.rl-cham  .rl{border-bottom:1px dotted rgba(0,0,0,.22);height:9mm}
+.rl-o     .rl{border-bottom:1px solid rgba(0,0,0,.18);height:10mm;
+  background-image:repeating-linear-gradient(90deg,transparent 0,transparent calc(10mm - 1px),rgba(0,0,0,.1) calc(10mm - 1px),rgba(0,0,0,.1) 10mm)}
+.rl-cot2  .rl{border-bottom:1px solid rgba(0,0,0,.18);height:9mm;
+  background-image:linear-gradient(90deg,transparent calc(50% - 0.5px),rgba(0,0,0,.18) calc(50% - 0.5px),rgba(0,0,0,.18) calc(50% + 0.5px),transparent calc(50% + 0.5px))}
+
+/* Scroll */
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:#0d1117}::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
+
+/* ── Trộn Đề Modal ── */
+#tronde-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:900;display:none;align-items:center;justify-content:center}
+#tronde-overlay.open{display:flex}
+#tronde-modal{background:#161b22;border:1px solid #30363d;border-radius:10px;width:min(980px,96vw);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.6);overflow:hidden}
+.td-hdr{background:#0d1117;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #30363d;flex-shrink:0}
+.td-hdr h2{font-size:.95rem;font-weight:700;color:#58a6ff;margin:0}
+.td-hdr .td-close{background:none;border:none;color:#8b949e;font-size:1.2rem;cursor:pointer;padding:2px 6px;border-radius:4px}
+.td-hdr .td-close:hover{background:#21262d;color:#fff}
+.td-body{display:flex;flex:1;overflow:hidden;gap:0}
+.td-left{flex:1.2;display:flex;flex-direction:column;padding:14px 16px;border-right:1px solid #21262d;overflow-y:auto;gap:8px}
+.td-right{width:300px;flex-shrink:0;padding:14px 16px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.td-label{font-size:.72rem;color:#58a6ff;text-transform:uppercase;font-weight:700;letter-spacing:.5px;margin-bottom:2px}
+.td-hint{background:#0d1117;border:1px solid #21262d;border-radius:6px;padding:8px 12px;font-size:.75rem;color:#8b949e;line-height:1.7}
+.td-hint code{color:#79c0ff;background:#21262d;padding:1px 4px;border-radius:3px;font-size:.72rem}
+#qbank-input{flex:1;min-height:260px;padding:12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-family:'Cascadia Code','Consolas',monospace;font-size:.8rem;line-height:1.7;resize:vertical;outline:none}
+#qbank-input:focus{border-color:#58a6ff}
+#qbank-stats{background:#0d1117;border:1px solid #21262d;border-radius:6px;padding:7px 12px;font-size:.78rem;color:#8b949e;min-height:32px;display:flex;align-items:center;gap:10px}
+.td-sf-group{display:flex;flex-direction:column;gap:4px}
+.td-sf-group label{font-size:.72rem;color:#8b949e;font-weight:600}
+.td-input{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:5px 9px;color:#c9d1d9;font-size:.82rem;outline:none;width:100%}
+.td-input:focus{border-color:#58a6ff}
+.td-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.td-check{display:flex;align-items:center;gap:6px;font-size:.82rem;color:#8b949e;cursor:pointer}
+.td-check input[type=checkbox]{accent-color:#58a6ff;width:14px;height:14px}
+.td-radio-group{display:flex;gap:10px}
+.td-radio{display:flex;align-items:center;gap:5px;font-size:.82rem;color:#8b949e;cursor:pointer}
+.td-radio input{accent-color:#58a6ff}
+.td-codes{display:flex;gap:6px;flex-wrap:wrap}
+.td-code-chip{background:#21262d;border:1px solid #30363d;border-radius:5px;padding:3px 10px;font-size:.8rem;font-weight:700;color:#c9d1d9;cursor:default}
+.td-sep{border:none;border-top:1px solid #21262d;margin:4px 0}
+.td-btn{border:none;padding:9px 16px;border-radius:6px;cursor:pointer;font-size:.82rem;font-weight:700;width:100%;transition:.15s}
+.td-btn-analyze{background:#21262d;color:#8b949e;border:1px solid #30363d}
+.td-btn-analyze:hover{background:#30363d;color:#fff}
+.td-btn-export{background:#1c7a3a;color:#fff}
+.td-btn-export:hover{background:#238636}
+.td-btn-export:disabled{background:#21262d;color:#555;cursor:not-allowed}
+.td-progress{font-size:.78rem;color:#58a6ff;text-align:center;min-height:20px}
+</style>
+</head>
+<body class="theme-blue">
+
+<!-- ══════════════════════ TOP BAR ══════════════════════ -->
+<div class="topbar">
+  <div class="topbar-title">📄 Markdown <span>+Math</span> → Word</div>
+  <div class="sep"></div>
+
+  <!-- Settings toggle -->
+  <button class="btn btn-ghost" id="btn-settings" onclick="toggleSettings()">⚙ Cài đặt</button>
+
+  <!-- Template selector -->
+  <select class="tpl-select" id="tpl-select" onchange="loadTemplate(this.value)">
+    <option value="">📋 Chèn mẫu…</option>
+    <option value="math">📐 Công thức toán học</option>
+    <option value="exam45">📝 Đề kiểm tra 45 phút</option>
+    <option value="exam90">📜 Đề thi học kỳ (2 cột TN)</option>
+    <option value="mcq3col">🗂 Mẫu trắc nghiệm 3 cột</option>
+    <option value="pptslide">🎞 Mẫu slide bài giảng (PPT)</option>
+    <option value="chuyende">📚 Chuyên đề bài học – Vecto</option>
+  </select>
+
+  <div class="sep"></div>
+
+  <!-- Theme buttons -->
+  <span style="font-size:.75rem;color:#8b949e">Màu:</span>
+  <button class="tpl-btn active" id="tpl-blue" title="Xanh Navy" onclick="setTheme('blue')"></button>
+  <button class="tpl-btn" id="tpl-green" title="Xanh Lá" onclick="setTheme('green')"></button>
+  <button class="tpl-btn" id="tpl-red" title="Đỏ Đậm" onclick="setTheme('red')"></button>
+  <button class="tpl-btn" id="tpl-purple" title="Tím Hoàng Gia" onclick="setTheme('purple')"></button>
+  <button class="tpl-btn" id="tpl-teal" title="Lam Ngọc" onclick="setTheme('teal')"></button>
+  <button class="tpl-btn" id="tpl-amber" title="Hổ Phách Vàng" onclick="setTheme('amber')"></button>
+  <button class="tpl-btn" id="tpl-rose" title="Hồng Anh" onclick="setTheme('rose')"></button>
+  <button class="tpl-btn" id="tpl-slate" title="Đen Xám Chuyên Nghiệp" onclick="setTheme('slate')"></button>
+
+  <div class="sep"></div>
+
+  <button class="btn" onclick="openRlModal()" style="background:#1e3a2a;color:#7ee8a2;border:1px solid #2ea043" onmouseover="this.style.background='#22472e'" onmouseout="this.style.background='#1e3a2a'" title="Chèn dòng kẻ cho học sinh làm bài">✏ Kẻ dòng</button>
+  <button class="btn" onclick="openTronDeModal()" style="background:#2d3f6e;color:#8ab4f8;border:1px solid #388bfd" onmouseover="this.style.background='#1f4082'" onmouseout="this.style.background='#2d3f6e'" title="Nhập ngân hàng câu hỏi, tạo 4 mã đề và xuất Word">🔀 Trộn đề</button>
+  <div class="sep"></div>
+  <button class="btn btn-ghost" onclick="clearEditor()">🗑 Xóa</button>
+  <button class="btn btn-primary" onclick="exportDocx()">⬇ Xuất Word</button>
+  <button class="btn btn-ghost" onclick="previewPdf()" title="Xem trước bố cục A4 trước khi in">👁 Xem trước PDF</button>
+  <button class="btn" onclick="exportPdf()" style="background:#8b1a1a;color:#ffd;border:none" onmouseover="this.style.background='#a52020'" onmouseout="this.style.background='#8b1a1a'" title="Xuất và mở hộp thoại in PDF ngay">📄 Xuất PDF</button>
+  <button class="btn" onclick="exportPptx()" style="background:#7B3F00;color:#ffe8cc;border:none" onmouseover="this.style.background='#9c5010'" onmouseout="this.style.background='#7B3F00'" title="Chuyển Markdown thành slide PowerPoint">🎞 Xuất PPT</button>
+  <button class="btn btn-ghost" onclick="exportLecturePdf(false)" title="Xem trước bài giảng 16:9 trước khi xuất">👁 Preview (A4 ngang)</button>
+  <button class="btn" onclick="exportLecturePdf(true)" style="background:#1a3d55;color:#a8e6ff;border:none" onmouseover="this.style.background='#1e5070'" onmouseout="this.style.background='#1a3d55'" title="Xuất PDF bài giảng kích thước ngang 16:9, viền khung theo màu template">📊 Xuất bài giảng</button>
+</div>
+
+<!-- ══════════════════════ SETTINGS PANEL ══════════════════════ -->
+<div id="settings-panel">
+  <div class="settings-inner">
+    <!-- Header -->
+    <div class="sf-group" style="min-width:220px">
+      <label>🏫 Tiêu đề đầu trang (Header)</label>
+      <input class="sf-input" id="hdr-main" placeholder="VD: TRƯỜNG THPT NGUYỄN TRÃI" value="">
+      <input class="sf-input" id="hdr-sub" placeholder="VD: TỔ TOÁN – NĂM HỌC 2025-2026" value="" style="margin-top:4px">
+    </div>
+    <!-- Footer -->
+    <div class="sf-group" style="min-width:220px">
+      <label>✍ Chân trang (Footer)</label>
+      <input class="sf-input" id="ftr-left" placeholder="VD: GV: Nguyễn Văn A" value="">
+      <input class="sf-input" id="ftr-right" placeholder="VD: Năm học 2025-2026" value="" style="margin-top:4px">
+    </div>
+    <!-- Page numbering -->
+    <div class="sf-group">
+      <label>📄 Số trang</label>
+      <div class="sf-row">
+        <label class="sf-check"><input type="checkbox" id="pg-enable" checked onchange="updatePreview()"> Đánh số trang</label>
+      </div>
+      <div class="sf-row" style="margin-top:4px">
+        <span style="font-size:.8rem;color:#8b949e">Vị trí:</span>
+        <select class="sf-select" id="pg-pos">
+          <option value="center">Giữa</option>
+          <option value="right">Phải</option>
+          <option value="left">Trái</option>
+        </select>
+        <select class="sf-select" id="pg-fmt">
+          <option value="page">Trang {n}/{t}</option>
+          <option value="dash">— {n} —</option>
+          <option value="num">Trang {n}</option>
+        </select>
+      </div>
+    </div>
+    <!-- Answer column -->
+    <div class="sf-group" style="min-width:160px">
+      <label>📋 Cột bài làm</label>
+      <select class="sf-select" id="answer-col" onchange="updatePreview()" style="width:100%">
+        <option value="">Không có</option>
+        <option value="1/4">1/4 trang (nhỏ)</option>
+        <option value="1/3">1/3 trang (vừa)</option>
+      </select>
+      <div style="font-size:.7rem;color:#8b949e;margin-top:3px;line-height:1.4">Dòng kẻ để<br>HS viết bài</div>
+    </div>
+    <!-- PDF Format -->
+    <div class="sf-group" style="min-width:200px">
+      <label>📄 Định dạng PDF</label>
+      <div class="sf-row">
+        <span style="font-size:.8rem;color:#8b949e;width:60px;flex-shrink:0">Cỡ chữ:</span>
+        <select class="sf-select" id="pdf-fontsize" onchange="updatePreview()" style="flex:1">
+          <option value="10">10pt – Nhỏ</option>
+          <option value="11">11pt – Vừa nhỏ</option>
+          <option value="12" selected>12pt – Chuẩn</option>
+          <option value="13">13pt – Lớn</option>
+          <option value="14">14pt – Rất lớn</option>
+        </select>
+      </div>
+      <div class="sf-row" style="margin-top:4px">
+        <span style="font-size:.8rem;color:#8b949e;width:60px;flex-shrink:0">Giãn dòng:</span>
+        <select class="sf-select" id="pdf-lineh" onchange="updatePreview()" style="flex:1">
+          <option value="1.45">Chặt (1.45)</option>
+          <option value="1.65">Vừa (1.65)</option>
+          <option value="1.78" selected>Thoáng (1.78)</option>
+        </select>
+      </div>
+      <div class="sf-row" style="margin-top:4px">
+        <span style="font-size:.8rem;color:#8b949e;width:60px;flex-shrink:0">Lề trang:</span>
+        <select class="sf-select" id="pdf-margin" onchange="updatePreview()" style="flex:1">
+          <option value="10">Hẹp – 10mm</option>
+          <option value="14">Vừa – 14mm</option>
+          <option value="18" selected>Chuẩn – 18mm</option>
+          <option value="25">Rộng – 25mm</option>
+        </select>
+      </div>
+      <label class="sf-check" style="margin-top:6px">
+        <input type="checkbox" id="pdf-compact" onchange="applyCompactMode(this.checked)">
+        ⚡ In ấn tiết kiệm (tự cấu hình)
+      </label>
+    </div>
+    <!-- PDF Watermark -->
+    <div class="sf-group" style="min-width:180px">
+      <label>🔖 Watermark PDF</label>
+      <input class="sf-input" id="wm-code" placeholder="Mã đề (VD: ĐỀ 132 – THPT AB)" value="">
+      <div class="sf-row" style="margin-top:5px">
+        <span style="font-size:.8rem;color:#8b949e">Độ đậm:</span>
+        <select class="sf-select" id="wm-opacity">
+          <option value="0">Không watermark</option>
+          <option value="0.06">Nhạt</option>
+          <option value="0.10" selected>Vừa</option>
+          <option value="0.16">Đậm</option>
+        </select>
+      </div>
+      <div style="font-size:.7rem;color:#8b949e;margin-top:3px;line-height:1.4">Dòng 1: tên trường (header)<br>Dòng 2: mã đề ở trên</div>
+    </div>
+    <!-- Slide syntax guide -->
+    <div class="sf-group" style="min-width:260px">
+      <label>📐 Cú pháp slide (PPT &amp; Bài giảng)</label>
+      <div style="font-size:.78rem;line-height:1.7;color:#c9d1d9;background:#161b22;border:1px solid #30363d;border-radius:5px;padding:7px 10px;font-family:monospace">
+        <span style="color:#79c0ff"># Tiêu đề</span> → Slide chương / section<br>
+        <span style="color:#79c0ff">## Tiêu đề</span> → Slide nội dung<br>
+        <span style="color:#ffa657">===</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ <b style="color:#fff">Ngắt sang slide mới</b> (cùng tiêu đề)<br>
+        <span style="color:#7ee8a2">:::kẻ 5</span> &nbsp;&nbsp; → <b style="color:#fff">5 dòng kẻ</b> (ngang/rộng/đứt/chấm/ô)<br>
+        <span style="color:#7ee787">- mục</span> &nbsp;&nbsp;&nbsp;&nbsp; → Bullet point<br>
+        <span style="color:#7ee787">### Phụ</span> &nbsp;&nbsp; → Tiêu đề phụ trong slide<br>
+        <span style="color:#d2a8ff">$công thức$</span> → Toán inline<br>
+        <span style="color:#d2a8ff">$$công thức$$</span> → Toán khối
+      </div>
+      <button class="btn btn-ghost" style="margin-top:5px;font-size:.78rem;padding:3px 10px" onclick="insertSlideBreak()" title="Chèn === vào vị trí con trỏ trong editor">⏎ Chèn ngắt slide (===)</button>
+    </div>
+    <!-- Apply -->
+    <div class="sf-group" style="justify-content:flex-end;min-width:80px">
+      <label>&nbsp;</label>
+      <button class="btn btn-primary" onclick="updatePreview()" style="margin-top:auto">↺ Cập nhật</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ MAIN AREA ══════════════════════ -->
+<div class="main" id="main">
+  <div class="panel editor-area" id="left-panel" style="flex:1">
+    <div class="panel-hdr">
+      <span class="dot" style="background:#f0883e"></span>
+      ✏️ Editor &nbsp;|&nbsp;
+      <span style="color:#58a6ff;font-family:monospace">$inline$</span> &nbsp;
+      <span style="color:#3fb950;font-family:monospace">$$block$$</span>
+      <button class="btn btn-ghost" id="btn-mtb" onclick="toggleMathToolbar()"
+        style="margin-left:auto;padding:3px 9px;font-size:.76rem;height:22px"
+        title="Toolbar ký hiệu toán (phân số, căn, tổng, tích phân…)">∑ Ký hiệu</button>
+    </div>
+    <!-- ── Math Symbol Toolbar ── -->
+    <div id="math-toolbar">
+      <div class="mtb-row" id="mtb-row"></div>
+    </div>
+    <textarea id="editor" oninput="updatePreview()" spellcheck="false"></textarea>
+  </div>
+  <div class="divider" id="divider"></div>
+  <div class="panel preview-panel" id="right-panel" style="flex:1">
+    <div class="panel-hdr" style="background:#f6f8fa;color:#57606a;border-color:#d0d7de">
+      <span class="dot" style="background:#3fb950"></span>
+      👁 Preview (A4)
+    </div>
+    <div id="preview-wrap">
+      <div id="preview">
+        <div id="preview-doc-header">
+          <div class="hdr-main" id="ph-main"></div>
+          <div class="hdr-sub" id="ph-sub"></div>
+        </div>
+        <div id="preview-content"></div>
+        <div id="preview-doc-footer">
+          <span id="pf-left"></span>
+          <span id="pf-page"></span>
+          <span id="pf-right"></span>
+        </div>
+        <!-- Cột bài làm overlay -->
+        <div id="answer-col-bar">
+          <div class="acb-header">B À I &nbsp; L À M</div>
+          <div class="acb-lines"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ MODAL KẺ DÒNG ══════════════════════ -->
+<div id="rl-overlay" onclick="if(event.target===this)closeRlModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;justify-content:center;align-items:center">
+  <div style="background:#161b22;border:1px solid #30363d;border-radius:12px;padding:22px 26px;width:420px;color:#e6edf3;box-shadow:0 12px 40px rgba(0,0,0,.6)">
+    <div style="font-weight:700;font-size:1rem;margin-bottom:18px;display:flex;align-items:center;gap:8px">✏ Chèn dòng kẻ học sinh làm bài</div>
+
+    <!-- 5 mode buttons -->
+    <div style="font-size:.78rem;color:#8b949e;margin-bottom:8px">Chọn kiểu dòng kẻ:</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px">
+      <button class="rl-mb active" data-mode="ngang" onclick="selectRlMode('ngang',this)" style="background:#21262d;border:1px solid #444;border-radius:7px;padding:8px 4px;cursor:pointer;color:#e6edf3;text-align:center">
+        <div style="border-bottom:1.5px solid #aaa;margin:2px 4px 6px;height:8px"></div>
+        <div style="border-bottom:1.5px solid #aaa;margin:2px 4px 6px;height:8px"></div>
+        <div style="font-size:.7rem;margin-top:2px">Ngang</div>
+      </button>
+      <button class="rl-mb" data-mode="rộng" onclick="selectRlMode('rộng',this)" style="background:#21262d;border:1px solid #444;border-radius:7px;padding:8px 4px;cursor:pointer;color:#e6edf3;text-align:center">
+        <div style="border-bottom:1.5px solid #aaa;margin:2px 4px 8px;height:11px"></div>
+        <div style="border-bottom:1.5px solid #aaa;margin:2px 4px 8px;height:11px"></div>
+        <div style="font-size:.7rem;margin-top:2px">Rộng</div>
+      </button>
+      <button class="rl-mb" data-mode="đứt" onclick="selectRlMode('đứt',this)" style="background:#21262d;border:1px solid #444;border-radius:7px;padding:8px 4px;cursor:pointer;color:#e6edf3;text-align:center">
+        <div style="border-bottom:1.5px dashed #aaa;margin:2px 4px 6px;height:8px"></div>
+        <div style="border-bottom:1.5px dashed #aaa;margin:2px 4px 6px;height:8px"></div>
+        <div style="font-size:.7rem;margin-top:2px">Đứt</div>
+      </button>
+      <button class="rl-mb" data-mode="chấm" onclick="selectRlMode('chấm',this)" style="background:#21262d;border:1px solid #444;border-radius:7px;padding:8px 4px;cursor:pointer;color:#e6edf3;text-align:center">
+        <div style="border-bottom:1.5px dotted #aaa;margin:2px 4px 6px;height:8px"></div>
+        <div style="border-bottom:1.5px dotted #aaa;margin:2px 4px 6px;height:8px"></div>
+        <div style="font-size:.7rem;margin-top:2px">Chấm</div>
+      </button>
+      <button class="rl-mb" data-mode="ô" onclick="selectRlMode('ô',this)" style="background:#21262d;border:1px solid #444;border-radius:7px;padding:8px 4px;cursor:pointer;color:#e6edf3;text-align:center">
+        <div style="height:20px;background-image:repeating-linear-gradient(#aaa3 0 1px,transparent 1px 8px),repeating-linear-gradient(90deg,#aaa3 0 1px,transparent 1px 8px);margin:2px 4px 4px"></div>
+        <div style="font-size:.7rem;margin-top:4px">Ô vuông</div>
+      </button>
+      <button class="rl-mb" data-mode="cột2" onclick="selectRlMode('cột2',this)" style="background:#21262d;border:1px solid #444;border-radius:7px;padding:8px 4px;cursor:pointer;color:#e6edf3;text-align:center">
+        <div style="position:relative;height:20px;margin:2px 4px 4px">
+          <div style="border-bottom:1.5px solid #aaa;height:9px"></div>
+          <div style="border-bottom:1.5px solid #aaa;height:9px"></div>
+          <div style="position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(170,170,170,.7)"></div>
+        </div>
+        <div style="font-size:.7rem;margin-top:4px">2 Cột</div>
+      </button>
+    </div>
+
+    <!-- Số dòng -->
+    <div style="font-size:.78rem;color:#8b949e;margin-bottom:8px">Số dòng:</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px">
+      <button onclick="rlAdj(-5)" style="background:#21262d;border:1px solid #444;color:#e6edf3;border-radius:5px;padding:4px 10px;cursor:pointer;font-size:.85rem">−5</button>
+      <button onclick="rlAdj(-1)" style="background:#21262d;border:1px solid #444;color:#e6edf3;border-radius:5px;padding:4px 10px;cursor:pointer;font-size:.85rem">−1</button>
+      <span id="rl-count-display" style="min-width:36px;text-align:center;font-size:1.3rem;font-weight:700;color:#58a6ff">5</span>
+      <button onclick="rlAdj(1)"  style="background:#21262d;border:1px solid #444;color:#e6edf3;border-radius:5px;padding:4px 10px;cursor:pointer;font-size:.85rem">+1</button>
+      <button onclick="rlAdj(5)"  style="background:#21262d;border:1px solid #444;color:#e6edf3;border-radius:5px;padding:4px 10px;cursor:pointer;font-size:.85rem">+5</button>
+      <span style="font-size:.75rem;color:#8b949e;margin-left:4px">(tối đa 50)</span>
+    </div>
+
+    <!-- Action -->
+    <div style="display:flex;justify-content:flex-end;gap:10px">
+      <button onclick="closeRlModal()" style="background:#21262d;border:1px solid #444;color:#e6edf3;border-radius:6px;padding:7px 18px;cursor:pointer">Huỷ</button>
+      <button onclick="doInsertRl()" style="background:#2ea043;border:none;color:#fff;border-radius:6px;padding:7px 20px;cursor:pointer;font-weight:600">✓ Chèn vào editor</button>
+    </div>
+  </div>
+</div>
+<style>
+.rl-mb.active{border-color:#58a6ff!important;background:#1f2d3d!important;box-shadow:0 0 0 2px rgba(88,166,255,.3)}
+</style>
+
+<!-- ══════════════════════ STATUS BAR ══════════════════════ -->
+<div class="statusbar">
+  <span id="status-msg" class="info">Sẵn sàng</span>
+  <span style="margin-left:auto;opacity:.6">**bold** *italic* `code` #H1 ##H2 | $toán học$ | $$khối$$ | <span style="color:#58a6ff">:::2</span> / <span style="color:#58a6ff">:::3</span> câu nhiều cột → <span style="color:#58a6ff">:::</span> kết thúc | <span style="color:#ffa657">===</span> ngắt slide | <span style="color:#7ee8a2">:::kẻ 5 ngang</span> dòng kẻ</span>
+</div>
+
+<!-- ══════════════════════ TRỘN ĐỀ MODAL ══════════════════════ -->
+<div id="tronde-overlay">
+  <div id="tronde-modal">
+    <div class="td-hdr">
+      <h2>🔀 Trộn đề tự động — Tạo nhiều mã đề từ ngân hàng câu hỏi</h2>
+      <button class="td-close" onclick="closeTronDeModal()">✕</button>
+    </div>
+    <div class="td-body">
+
+      <!-- LEFT: Question bank textarea -->
+      <div class="td-left">
+        <div class="td-label">📚 Ngân hàng câu hỏi</div>
+        <div class="td-hint">
+          Mỗi câu cách nhau bằng <code>dòng trống</code>. Định dạng:<br>
+          <code>Câu 1. Nội dung câu hỏi (hỗ trợ $toán học$)</code><br>
+          <code>A. Lựa chọn A</code> &nbsp;<code>B. Lựa chọn B</code><br>
+          <code>C. Lựa chọn C</code> &nbsp;<code>D. Lựa chọn D</code><br>
+          <code>Đáp án: A</code>
+        </div>
+        <textarea id="qbank-input" placeholder="Dán ngân hàng câu hỏi vào đây..."></textarea>
+        <div id="qbank-stats">
+          <span style="color:#8b949e">Chưa phân tích</span>
+        </div>
+      </div>
+
+      <!-- RIGHT: Settings -->
+      <div class="td-right">
+        <div class="td-label">⚙ Cài đặt đề thi</div>
+
+        <div class="td-sf-group">
+          <label>Tiêu đề đề thi</label>
+          <input class="td-input" id="td-title" placeholder="VD: ĐỀ KIỂM TRA GIỮA KỲ" value="ĐỀ KIỂM TRA">
+        </div>
+        <div class="td-sf-group">
+          <label>Môn học</label>
+          <input class="td-input" id="td-subject" placeholder="VD: Toán học" value="">
+        </div>
+        <div class="td-row">
+          <div class="td-sf-group" style="flex:1">
+            <label>Thời gian (phút)</label>
+            <input class="td-input" id="td-time" type="number" placeholder="45" value="45" min="5" max="180">
+          </div>
+          <div class="td-sf-group" style="flex:1">
+            <label>Lớp</label>
+            <input class="td-input" id="td-grade" placeholder="VD: 10A1">
+          </div>
+        </div>
+        <div class="td-sf-group">
+          <label>Tên trường (header)</label>
+          <input class="td-input" id="td-school" placeholder="VD: TRƯỜNG THPT NGUYỄN TRÃI" value="">
+        </div>
+
+        <hr class="td-sep">
+
+        <div class="td-sf-group">
+          <label>Số mã đề</label>
+          <div class="td-radio-group">
+            <label class="td-radio"><input type="radio" name="td-nvars" value="2"> 2 mã</label>
+            <label class="td-radio"><input type="radio" name="td-nvars" value="3"> 3 mã</label>
+            <label class="td-radio"><input type="radio" name="td-nvars" value="4" checked> 4 mã</label>
+          </div>
+        </div>
+        <div class="td-sf-group">
+          <label>Ký hiệu mã đề</label>
+          <div class="td-radio-group">
+            <label class="td-radio"><input type="radio" name="td-codetype" value="alpha" checked> A B C D</label>
+            <label class="td-radio"><input type="radio" name="td-codetype" value="num"> 101 102 …</label>
+          </div>
+        </div>
+        <label class="td-check">
+          <input type="checkbox" id="td-shuffle-opts" checked>
+          Trộn thứ tự đáp án (A→B→…)
+        </label>
+        <label class="td-check">
+          <input type="checkbox" id="td-incl-key" checked>
+          Đính kèm file đáp án (DapAn.docx)
+        </label>
+
+        <hr class="td-sep">
+
+        <button class="td-btn td-btn-analyze" onclick="analyzeTronDe()">🔍 Phân tích ngân hàng</button>
+        <button class="td-btn td-btn-export" id="td-btn-export" onclick="exportTronDe()" disabled>🎲 Tạo đề &amp; Xuất ZIP</button>
+        <div class="td-progress" id="td-progress"></div>
+
+        <div style="font-size:.7rem;color:#555;line-height:1.6;margin-top:4px">
+          Xuất file <code style="color:#58a6ff">.zip</code> gồm Word cho từng mã đề + file đáp án.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ SCRIPTS ══════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════════
+// 1. KÝ HIỆU TOÁN HỌC
+// ═══════════════════════════════════════════════════════════
+const GREEK={alpha:'α',beta:'β',gamma:'γ',delta:'δ',epsilon:'ε',varepsilon:'ε',zeta:'ζ',eta:'η',theta:'θ',vartheta:'ϑ',iota:'ι',kappa:'κ',lambda:'λ',mu:'μ',nu:'ν',xi:'ξ',pi:'π',varpi:'ϖ',rho:'ρ',varrho:'ϱ',sigma:'σ',varsigma:'ς',tau:'τ',upsilon:'υ',phi:'φ',varphi:'φ',chi:'χ',psi:'ψ',omega:'ω',Alpha:'Α',Beta:'Β',Gamma:'Γ',Delta:'Δ',Epsilon:'Ε',Zeta:'Ζ',Eta:'Η',Theta:'Θ',Iota:'Ι',Kappa:'Κ',Lambda:'Λ',Mu:'Μ',Nu:'Ν',Xi:'Ξ',Pi:'Π',Rho:'Ρ',Sigma:'Σ',Tau:'Τ',Upsilon:'Υ',Phi:'Φ',Chi:'Χ',Psi:'Ψ',Omega:'Ω'};
+const OPS={times:'×',div:'÷',cdot:'·',cdots:'⋯',ldots:'…',vdots:'⋮',ddots:'⋱',pm:'±',mp:'∓',ast:'∗',leq:'≤',geq:'≥',neq:'≠',ne:'≠',approx:'≈',equiv:'≡',sim:'∼',simeq:'≃',cong:'≅',propto:'∝',ll:'≪',gg:'≫','in':'∈',notin:'∉',ni:'∋',subset:'⊂',supset:'⊃',subseteq:'⊆',supseteq:'⊇',cup:'∪',cap:'∩',emptyset:'∅',varnothing:'∅',setminus:'∖',forall:'∀',exists:'∃',nexists:'∄',infty:'∞',partial:'∂',nabla:'∇',rightarrow:'→',leftarrow:'←',Rightarrow:'⇒',Leftarrow:'⇐',leftrightarrow:'↔',Leftrightarrow:'⟺',uparrow:'↑',downarrow:'↓',to:'→',gets:'←',mapsto:'↦',longrightarrow:'⟶',longleftarrow:'⟵',Longrightarrow:'⟹',Longleftarrow:'⟸',because:'∵',therefore:'∴',angle:'∠',measuredangle:'∡',perp:'⊥',parallel:'∥',triangle:'△',square:'□',circ:'∘',bullet:'•',oplus:'⊕',ominus:'⊖',otimes:'⊗',oslash:'⊘',langle:'⟨',rangle:'⟩',land:'∧',lor:'∨',lnot:'¬',neg:'¬',top:'⊤',bot:'⊥',vdash:'⊢',models:'⊨',Re:'ℜ',Im:'ℑ',wp:'℘',prime:'′',hbar:'ℏ',sin:'sin',cos:'cos',tan:'tan',cot:'cot',sec:'sec',csc:'csc',arcsin:'arcsin',arccos:'arccos',arctan:'arctan',sinh:'sinh',cosh:'cosh',tanh:'tanh',coth:'coth',log:'log',ln:'ln',lg:'lg',exp:'exp',det:'det',dim:'dim',deg:'deg',mod:'mod',gcd:'gcd',lcm:'lcm',ker:'ker',max:'max',min:'min',sup:'sup',inf:'inf',arg:'arg',sgn:'sgn'};
+const FUNCS=new Set(['sin','cos','tan','cot','sec','csc','arcsin','arccos','arctan','sinh','cosh','tanh','coth','log','ln','lg','exp','det','dim','deg','mod','gcd','lcm','ker','max','min','sup','inf','arg','sgn','lim','Re','Im']);
+
+// ═══════════════════════════════════════════════════════════
+// 2. OMML BUILDERS
+// ═══════════════════════════════════════════════════════════
+function X(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function mr(t,sty='i'){return`<m:r><m:rPr><m:sty m:val="${sty}"/></m:rPr><m:t>${X(t)}</m:t></m:r>`}
+function mrp(t){return mr(t,'p')}
+function mfrac(n,d){return`<m:f><m:num>${n}</m:num><m:den>${d}</m:den></m:f>`}
+function msSup(e,s){return`<m:sSup><m:e>${e}</m:e><m:sup>${s}</m:sup></m:sSup>`}
+function msSub(e,s){return`<m:sSub><m:e>${e}</m:e><m:sub>${s}</m:sub></m:sSub>`}
+function msSubSup(e,b,s){return`<m:sSubSup><m:e>${e}</m:e><m:sub>${b}</m:sub><m:sup>${s}</m:sup></m:sSubSup>`}
+function mrad(deg,e){if(!deg)return`<m:rad><m:radPr><m:degHide m:val="1"/></m:radPr><m:deg/><m:e>${e}</m:e></m:rad>`;return`<m:rad><m:radPr/><m:deg>${deg}</m:deg><m:e>${e}</m:e></m:rad>`}
+function mnary(chr,sub,sup,e){const sh=sub?'0':'1',ph=sup?'0':'1';return`<m:nary><m:naryPr><m:chr m:val="${X(chr)}"/><m:limLoc m:val="subSup"/><m:subHide m:val="${sh}"/><m:supHide m:val="${ph}"/></m:naryPr><m:sub>${sub||''}</m:sub><m:sup>${sup||''}</m:sup><m:e>${e}</m:e></m:nary>`}
+function mdelim(o,c,e){const bp=o?`<m:begChr m:val="${X(o)}"/>`:'<m:begChr m:val=""/>';const ep=c?`<m:endChr m:val="${X(c)}"/>`:'<m:endChr m:val=""/>';return`<m:d><m:dPr>${bp}${ep}</m:dPr><m:e>${e}</m:e></m:d>`}
+function macc(chr,e){return`<m:acc><m:accPr><m:chr m:val="${X(chr)}"/></m:accPr><m:e>${e}</m:e></m:acc>`}
+function mlimLow(e,l){return`<m:limLow><m:e>${e}</m:e><m:lim>${l}</m:lim></m:limLow>`}
+function meqArr(rows){return`<m:eqArr>${rows.map(r=>`<m:e>${r}</m:e>`).join('')}</m:eqArr>`}
+
+// ═══════════════════════════════════════════════════════════
+// 3. TOKENIZER
+// ═══════════════════════════════════════════════════════════
+function tokenize(s){
+  const toks=[];let i=0;
+  while(i<s.length){
+    if(s[i]==='\\'){
+      if(i+1<s.length){
+        if(/[a-zA-Z]/.test(s[i+1])){let j=i+1;while(j<s.length&&/[a-zA-Z]/.test(s[j]))j++;toks.push({t:'cmd',v:s.slice(i+1,j)});i=j;while(i<s.length&&s[i]===' ')i++;}
+        else if(s[i+1]==='\\'){toks.push({t:'newline'});i+=2;}
+        else{toks.push({t:'chr',v:s[i+1]});i+=2;}
+      }else i++;
+    }else if(s[i]==='{'){toks.push({t:'lb'});i++;}
+    else if(s[i]==='}'){toks.push({t:'rb'});i++;}
+    else if(s[i]==='^'){toks.push({t:'sup'});i++;}
+    else if(s[i]==='_'){toks.push({t:'sub'});i++;}
+    else if(s[i]==='&'){toks.push({t:'amp'});i++;}
+    else if(/\s/.test(s[i])){i++;}
+    else{toks.push({t:'chr',v:s[i]});i++;}
+  }
+  return toks;
+}
+
+// ═══════════════════════════════════════════════════════════
+// 4. PARSER LaTeX → OMML
+// ═══════════════════════════════════════════════════════════
+class Parser{
+  constructor(l){this.toks=tokenize(l);this.i=0}
+  peek(o=0){return this.toks[this.i+o]||null}
+  eat(){return this.toks[this.i++]||null}
+  group(){const t=this.peek();if(!t)return'';if(t.t==='lb'){this.eat();const r=this.expr(['rb']);if(this.peek()&&this.peek().t==='rb')this.eat();return r;}return this.primary()}
+  groupText(){const t=this.peek();if(!t)return'';let o='';if(t.t==='lb'){this.eat();while(this.peek()&&this.peek().t!=='rb'){const k=this.eat();if(k.t==='chr')o+=k.v;else if(k.t==='cmd')o+=k.v;}if(this.peek())this.eat();}else if(t.t==='chr'){this.eat();o=t.v;}else if(t.t==='cmd'){this.eat();o=t.v;}return o}
+  optBracket(){const t=this.peek();if(t&&t.t==='chr'&&t.v==='['){this.eat();let c='';while(this.peek()&&!(this.peek().t==='chr'&&this.peek().v===']'))c+=this.primary();if(this.peek())this.eat();return c;}return null}
+  subSup(){let sb=null,sp=null;const f=()=>{const t=this.peek();if(!t)return false;if(t.t==='sub'&&sb===null){this.eat();sb=this.group();return true;}if(t.t==='sup'&&sp===null){this.eat();sp=this.group();return true;}return false;};f();f();return[sb,sp]}
+  expr(stop=[]){let o='';while(this.i<this.toks.length){const t=this.peek();if(!t||stop.includes(t.t))break;if(t.t==='amp')break;if(t.t==='cmd'&&t.v==='end')break;o+=this.atom(stop);}return o}
+  atom(stop=[]){let base=this.primary();let sb=null,sp=null;const f=()=>{const t=this.peek();if(!t||stop.includes(t.t))return false;if(t.t==='sup'&&sp===null){this.eat();sp=this.group();return true;}if(t.t==='sub'&&sb===null){this.eat();sb=this.group();return true;}return false;};f();f();if(sb!==null&&sp!==null)return msSubSup(base,sb,sp);if(sb!==null)return msSub(base,sb);if(sp!==null)return msSup(base,sp);return base}
+  primary(){
+    const t=this.peek();if(!t)return'';
+    if(t.t==='lb'){this.eat();const r=this.expr(['rb']);if(this.peek()&&this.peek().t==='rb')this.eat();return r;}
+    if(t.t==='cmd'){this.eat();return this.cmd(t.v)}
+    if(t.t==='chr'){this.eat();const c=t.v;if(/[0-9.,;:!?=+\-<>|\/]/.test(c))return mrp(c);if(/[a-zA-Z]/.test(c))return mr(c,'i');if(c==='*')return mrp('·');if(c===' ')return mrp(' ');return mrp(c);}
+    if(t.t==='sup'){this.eat();return mrp('^')}if(t.t==='sub'){this.eat();return mrp('_')}
+    if(t.t==='newline'){this.eat();return''}
+    this.eat();return''
+  }
+  cmd(name){
+    if(GREEK[name])return mr(GREEK[name],'i');
+    if(OPS[name]){const v=OPS[name];if(FUNCS.has(name)){if(name==='lim'){const t=this.peek();if(t&&t.t==='sub'){this.eat();const lim=this.group();return mlimLow(mrp('lim'),lim);}return mrp('lim');}return mrp(v);}return mrp(v);}
+    switch(name){
+      case 'frac':case 'dfrac':case 'tfrac':case 'cfrac':{const n=this.group(),d=this.group();return mfrac(n,d)}
+      case 'binom':case 'dbinom':case 'tbinom':{const n=this.group(),k=this.group();return mdelim('(',')',mfrac(n,k))}
+      case 'sqrt':{const deg=this.optBracket();const e=this.group();return mrad(deg,e)}
+      case 'cbrt':{return mrad(mrp('3'),this.group())}
+      case 'sum':{const[s,p]=this.subSup();const e=this.group()||'';return mnary('∑',s,p,e)}
+      case 'prod':{const[s,p]=this.subSup();const e=this.group()||'';return mnary('∏',s,p,e)}
+      case 'int':{const[s,p]=this.subSup();const e=this.group()||'';return mnary('∫',s,p,e)}
+      case 'iint':{const[s,p]=this.subSup();const e=this.group()||'';return mnary('∬',s,p,e)}
+      case 'iiint':{const[s,p]=this.subSup();const e=this.group()||'';return mnary('∭',s,p,e)}
+      case 'oint':{const[s,p]=this.subSup();const e=this.group()||'';return mnary('∮',s,p,e)}
+      case 'bigcup':case 'bigcap':case 'bigoplus':case 'bigotimes':{const chr={bigcup:'⋃',bigcap:'⋂',bigoplus:'⨁',bigotimes:'⨂'}[name];const[s,p]=this.subSup();return mnary(chr,s,p,this.group()||'')}
+      case 'left':return this.parseLeft()
+      case 'right':{const t=this.peek();if(t&&(t.t==='chr'||t.t==='cmd'||t.t==='lb'||t.t==='rb'))this.eat();return''}
+      case 'big':case 'Big':case 'bigg':case 'Bigg':{const t=this.peek();if(t&&t.t==='chr'){this.eat();return mrp(t.v)}return''}
+      case 'hat':case 'widehat':return macc('̂',this.group())
+      case 'check':return macc('̌',this.group())
+      case 'tilde':case 'widetilde':return macc('̃',this.group())
+      case 'bar':case 'overline':{return`<m:bar><m:barPr><m:pos m:val="top"/></m:barPr><m:e>${this.group()}</m:e></m:bar>`}
+      case 'underline':{return`<m:bar><m:barPr><m:pos m:val="bot"/></m:barPr><m:e>${this.group()}</m:e></m:bar>`}
+      case 'vec':return macc('⃗',this.group())
+      case 'dot':return macc('̇',this.group())
+      case 'ddot':return macc('̈',this.group())
+      case 'acute':return macc('́',this.group())
+      case 'grave':return macc('̀',this.group())
+      case 'underbrace':{return`<m:groupChr><m:groupChrPr><m:chr m:val="⏟"/><m:pos m:val="bot"/><m:vertJc m:val="top"/></m:groupChrPr><m:e>${this.group()}</m:e></m:groupChr>`}
+      case 'overbrace':{return`<m:groupChr><m:groupChrPr><m:chr m:val="⏞"/><m:pos m:val="top"/><m:vertJc m:val="bot"/></m:groupChrPr><m:e>${this.group()}</m:e></m:groupChr>`}
+      case 'overset':{const top=this.group(),base=this.group();return msSup(base,top)}
+      case 'underset':{const bot=this.group(),base=this.group();return msSub(base,bot)}
+      case 'stackrel':{const top=this.group(),base=this.group();return msSup(base,top)}
+      case 'xrightarrow':{return msSup(mrp('→'),this.group())}
+      case 'xleftarrow':{return msSup(mrp('←'),this.group())}
+      case 'text':case 'mbox':case 'textrm':case 'textit':case 'textbf':{return mrp(this.groupText())}
+      case 'mathrm':case 'operatorname':{const tx=this.groupText();return mr(tx,'p')}
+      case 'mathbf':case 'boldsymbol':case 'bm':return this.group()
+      case 'mathit':return this.group()
+      case 'mathbb':{const tx=this.groupText();const m={N:'ℕ',Z:'ℤ',Q:'ℚ',R:'ℝ',C:'ℂ',P:'ℙ',F:'𝔽',A:'𝔸',E:'𝔼'};return mrp(m[tx]||tx)}
+      case 'mathcal':{const tx=this.groupText();const c={A:'𝒜',B:'ℬ',C:'𝒞',D:'𝒟',E:'ℰ',F:'ℱ',G:'𝒢',H:'ℋ',I:'ℐ',J:'𝒥',K:'𝒦',L:'ℒ',M:'ℳ',N:'𝒩',O:'𝒪',P:'𝒫',Q:'𝒬',R:'ℛ',S:'𝒮',T:'𝒯',U:'𝒰',V:'𝒱',W:'𝒲',X:'𝒳',Y:'𝒴',Z:'𝒵'};return mrp(c[tx]||tx)}
+      case 'not':{const nx=this.primary();return nx+mrp('̸')}
+      case 'begin':return this.environment()
+      case 'end':{this.groupText();return''}
+      case 'lim':{const t=this.peek();if(t&&t.t==='sub'){this.eat();return mlimLow(mrp('lim'),this.group());}return mrp('lim')}
+      case 'limits':case 'nolimits':case 'displaystyle':case 'textstyle':case 'scriptstyle':case 'textnormal':return''
+      case 'quad':return mrp(' ')
+      case 'qquad':return mrp('  ')
+      case ',':case ';':case ':':return mrp(' ')
+      case '!':return''
+      case ' ':return mrp(' ')
+      case 'hspace':case 'vspace':{this.group();return mrp(' ')}
+      case 'ell':return mrp('ℓ')
+      case 'hbar':return mrp('ℏ')
+      case 'infty':return mrp('∞')
+      case 'ldots':return mrp('…')
+      case 'cdots':return mrp('⋯')
+      case 'vdots':return mrp('⋮')
+      case 'ddots':return mrp('⋱')
+      case 'lfloor':return mrp('⌊');case 'rfloor':return mrp('⌋')
+      case 'lceil':return mrp('⌈');case 'rceil':return mrp('⌉')
+      case 'vert':return mrp('|');case 'Vert':return mrp('‖')
+      case 'backslash':return mrp('\\')
+      case 'prime':return mrp('′')
+      case 'degree':return mrp('°')
+      case 'hline':return''
+      case 'cline':{this.group();return''}
+      case 'label':case 'tag':{this.group();return''}
+      case 'ref':case 'eqref':{return mrp(`(${this.groupText()})`)}
+      case 'boxed':return mdelim('[',']',this.group())
+      case 'cancel':return this.group()
+      case 'color':{this.group();return this.group()}
+      case 'cases':return mdelim('{','',this.group())
+      default:if(/^[a-z]/.test(name)&&name.length>1&&!/\d/.test(name))return mr(name,'p');return mr(name,'i');
+    }
+  }
+  parseLeft(){
+    const delMap={lbrace:'{',rbrace:'}',lvert:'|',rvert:'|',lVert:'‖',rVert:'‖',lfloor:'⌊',rfloor:'⌋',lceil:'⌈',rceil:'⌉',langle:'⟨',rangle:'⟩',vert:'|',Vert:'‖'};
+    const getDelim=()=>{const t=this.peek();if(!t)return'';if(t.t==='chr'){this.eat();return t.v==='.'?'':t.v;}if(t.t==='lb'){this.eat();return'{';}if(t.t==='rb'){this.eat();return'}';}if(t.t==='cmd'){this.eat();return delMap[t.v]!==undefined?delMap[t.v]:(t.v==='.'?'':t.v);}return'';};
+    const open=getDelim();let content='';let depth=0;
+    while(this.i<this.toks.length){const t=this.peek();if(!t)break;if(t.t==='cmd'&&t.v==='left')depth++;if(t.t==='cmd'&&t.v==='right'){if(depth===0)break;depth--;}content+=this.atom();}
+    if(this.peek()&&this.peek().t==='cmd'&&this.peek().v==='right')this.eat();
+    const close=getDelim();
+    if(!open&&!close)return content;
+    return mdelim(open,close,content);
+  }
+  environment(){
+    const name=this.groupText();
+    if(['matrix','pmatrix','bmatrix','Bmatrix','vmatrix','Vmatrix','smallmatrix'].includes(name)){
+      const dm2={pmatrix:['(',')']}; dm2.bmatrix=['[',']'];dm2.Bmatrix=['{','}'];dm2.vmatrix=['|','|'];dm2.Vmatrix=['‖','‖'];dm2.matrix=['',''];dm2.smallmatrix=['',''];
+      const[o,c]=(dm2[name]||['','']);return this.matrix(o,c);
+    }
+    if(name==='cases')return this.matrixEnv(true);
+    if(['align','align*','aligned','gather','gather*','gathered'].includes(name))return this.align();
+    return this.expr();
+  }
+  matrix(open,close){
+    const rows=[];let row=[],cell='';
+    const flush=()=>{row.push(cell);cell='';};const flushR=()=>{flush();rows.push(row);row=[];};
+    while(this.i<this.toks.length){const t=this.peek();if(!t)break;if(t.t==='cmd'&&t.v==='end')break;if(t.t==='newline'){this.eat();flushR();continue;}if(t.t==='amp'){this.eat();flush();continue;}if(t.t==='cmd'&&t.v==='hline'){this.eat();continue;}cell+=this.atom();}
+    if(this.peek()&&this.peek().t==='cmd'&&this.peek().v==='end'){this.eat();this.groupText();}
+    if(cell||row.length>0){flush();rows.push(row);}
+    while(rows.length>0&&rows[rows.length-1].every(c=>!c))rows.pop();
+    if(!rows.length)rows.push(['']);
+    const nc=Math.max(...rows.map(r=>r.length),1);
+    const mcs=`<m:mcs><m:mc><m:mcPr><m:count m:val="${nc}"/><m:mcJc m:val="center"/></m:mcPr></m:mc></m:mcs>`;
+    const mrows=rows.map(r=>{while(r.length<nc)r.push('');return`<m:mr>${r.map(c=>`<m:e>${c}</m:e>`).join('')}</m:mr>`}).join('');
+    const mat=`<m:m><m:mPr>${mcs}</m:mPr>${mrows}</m:m>`;
+    return(open||close)?mdelim(open,close,mat):mat;
+  }
+  matrixEnv(cases=false){
+    const rows=[];let row=[],cell='';
+    const flush=()=>{row.push(cell);cell='';};const flushR=()=>{flush();rows.push(row);row=[];};
+    while(this.i<this.toks.length){const t=this.peek();if(!t)break;if(t.t==='cmd'&&t.v==='end')break;if(t.t==='newline'){this.eat();flushR();continue;}if(t.t==='amp'){this.eat();flush();continue;}cell+=this.atom();}
+    if(this.peek()&&this.peek().t==='cmd'&&this.peek().v==='end'){this.eat();this.groupText();}
+    if(cell||row.length>0){flush();rows.push(row);}
+    while(rows.length>0&&rows[rows.length-1].every(c=>!c))rows.pop();
+    if(!rows.length)rows.push(['']);
+    const nc=Math.max(...rows.map(r=>r.length),1);
+    const mcs=`<m:mcs><m:mc><m:mcPr><m:count m:val="${nc}"/><m:mcJc m:val="left"/></m:mcPr></m:mc></m:mcs>`;
+    const mrows=rows.map(r=>{while(r.length<nc)r.push('');return`<m:mr>${r.map(c=>`<m:e>${c}</m:e>`).join('')}</m:mr>`}).join('');
+    const mat=`<m:m><m:mPr>${mcs}</m:mPr>${mrows}</m:m>`;
+    return cases?mdelim('{','',mat):mat;
+  }
+  align(){
+    const lines=[];let line='';
+    while(this.i<this.toks.length){const t=this.peek();if(!t)break;if(t.t==='cmd'&&t.v==='end')break;if(t.t==='newline'){this.eat();lines.push(line);line='';continue;}if(t.t==='amp'){this.eat();continue;}line+=this.atom();}
+    if(this.peek()&&this.peek().t==='cmd'&&this.peek().v==='end'){this.eat();this.groupText();}
+    if(line)lines.push(line);
+    const fl=lines.filter(l=>l);
+    return fl.length<=1?fl[0]||'':meqArr(fl);
+  }
+}
+
+function latex2omml(latex,display=false){
+  try{const p=new Parser(latex.trim());const inner=p.expr();if(display)return`<m:oMathPara><m:oMath>${inner}</m:oMath></m:oMathPara>`;return`<m:oMath>${inner}</m:oMath>`;}
+  catch(e){console.warn('LaTeX err:',e,latex);return display?`<m:oMathPara><m:oMath>${mrp('?')}</m:oMath></m:oMathPara>`:`<m:oMath>${mrp('?')}</m:oMath>`;}
+}
+
+// ═══════════════════════════════════════════════════════════
+// 5. MULTI-COLUMN + RULED-LINES HELPERS
+// ═══════════════════════════════════════════════════════════
+
+// Chuyển :::2 / :::3 ... ::: thành <div class="mc-Ncol"> cho preview
+function preprocessMultiCol(md){
+  return md
+    .replace(/^:::([23])\s*$/mg, (_,n)=>`<div class="mc-${n}col">`)
+    .replace(/^:::\s*$/mg,'</div>');
+}
+
+// Chuyển :::kẻ N [kiểu] → HTML dòng kẻ cho preview / PDF
+const RL_MODE={'ngang':'ngang','rộng':'rong','rong':'rong','đứt':'dut','dut':'dut','chấm':'cham','cham':'cham','ô':'o','o':'o','cột2':'cot2','cot2':'cot2'};
+function processRuledLines(md){
+  return md.replace(/^:::kẻ\s+(\d+)(?:\s+(\S+))?\s*$/mg,(_,n,style)=>{
+    const count=Math.min(parseInt(n)||1,50);
+    const cls=RL_MODE[style||'ngang']||'ngang';
+    return '\n<div class="ruled-lines rl-'+cls+'">'+'<span class="rl"></span>'.repeat(count)+'</div>\n';
+  });
+}
+
+// Preprocessor kết hợp dùng cho preview + PDF
+function preprocessAll(md){ return processRuledLines(preprocessMultiCol(md)); }
+
+// Tạo bảng 2 cột cho Word (kẻ đường thẳng chia đôi)
+function makeRuledLineTable2Col(n){
+  const nb='w:val="none" w:sz="0" w:space="0" w:color="auto"';
+  const hb='w:val="single" w:sz="4" w:space="0" w:color="BBBBBB"';
+  const vb='w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"';
+  const half=4680;
+  let rows='';
+  for(let i=0;i<n;i++){
+    rows+=`<w:tr><w:trPr><w:trHeight w:val="200" w:hRule="exact"/></w:trPr>`+
+      `<w:tc><w:tcPr><w:tcW w:w="${half}" w:type="dxa"/><w:tcBorders><w:top ${nb}/><w:left ${nb}/><w:bottom ${hb}/><w:right ${vb}/></w:tcBorders><w:tcMar><w:left w:w="0" w:type="dxa"/><w:right w:w="0" w:type="dxa"/></w:tcMar></w:tcPr><w:p/></w:tc>`+
+      `<w:tc><w:tcPr><w:tcW w:w="${half}" w:type="dxa"/><w:tcBorders><w:top ${nb}/><w:left ${vb}/><w:bottom ${hb}/><w:right ${nb}/></w:tcBorders><w:tcMar><w:left w:w="0" w:type="dxa"/><w:right w:w="0" w:type="dxa"/></w:tcMar></w:tcPr><w:p/></w:tc>`+
+      `</w:tr>`;
+  }
+  return`<w:tbl><w:tblPr><w:tblW w:w="9360" w:type="dxa"/><w:tblBorders><w:top ${nb}/><w:left ${nb}/><w:bottom ${nb}/><w:right ${nb}/><w:insideH ${nb}/><w:insideV ${nb}/></w:tblBorders><w:tblCellMar><w:top w:w="0" w:type="dxa"/><w:left w:w="57" w:type="dxa"/><w:bottom w:w="0" w:type="dxa"/><w:right w:w="57" w:type="dxa"/></w:tblCellMar></w:tblPr>${rows}</w:tbl>`;
+}
+
+// Tạo đoạn Word có đường kẻ phía dưới
+function makeRuledLinePara(style){
+  const vm={'rộng':'rong','đứt':'dut','chấm':'cham','ô':'o'};
+  const s=vm[style]||style||'ngang';
+  const val=s==='dut'?'dashed':s==='cham'?'dotted':'single';
+  const h=s==='rong'?280:200;
+  return`<w:p><w:pPr><w:spacing w:before="0" w:after="0" w:line="${h}" w:lineRule="exact"/><w:pBdr><w:bottom w:val="${val}" w:sz="4" w:space="0" w:color="BBBBBB"/></w:pBdr></w:pPr></w:p>`;
+}
+
+// ── Modal chèn dòng kẻ ──
+let _rlMode='ngang', _rlCount=5;
+function openRlModal(){
+  _rlMode='ngang'; _rlCount=5;
+  document.getElementById('rl-count-display').textContent=_rlCount;
+  document.querySelectorAll('.rl-mb').forEach(b=>b.classList.remove('active'));
+  document.querySelector('.rl-mb[data-mode="ngang"]').classList.add('active');
+  const ov=document.getElementById('rl-overlay');
+  ov.style.display='flex';
+}
+function closeRlModal(){ document.getElementById('rl-overlay').style.display='none'; }
+function selectRlMode(m,btn){
+  _rlMode=m;
+  document.querySelectorAll('.rl-mb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function rlAdj(d){
+  _rlCount=Math.max(1,Math.min(50,_rlCount+d));
+  document.getElementById('rl-count-display').textContent=_rlCount;
+}
+function doInsertRl(){
+  const ta=document.getElementById('editor');
+  const s=ta.selectionStart,v=ta.value;
+  const before=v.slice(0,s),after=v.slice(s);
+  const nl1=before.length&&!before.endsWith('\n')?'\n':'';
+  const nl2=after.length&&!after.startsWith('\n')?'\n':'';
+  const snip=nl1+':::kẻ '+_rlCount+' '+_rlMode+nl2+'\n';
+  ta.value=before+snip+after;
+  ta.selectionStart=ta.selectionEnd=before.length+snip.length;
+  ta.focus();
+  updatePreview();
+  closeRlModal();
+  setStatus('✅ Đã chèn '+_rlCount+' dòng kẻ ('+_rlMode+')','ok');
+}
+
+// Tách lines thành nhóm đoạn văn (ngăn cách bởi dòng trắng)
+function splitIntoParagraphGroups(lines){
+  const groups=[];let cur=[];
+  for(const l of lines){
+    if(!l.trim()){if(cur.length){groups.push(cur);cur=[];}}
+    else cur.push(l);
+  }
+  if(cur.length)groups.push(cur);
+  return groups;
+}
+
+// Xây bảng N cột trong Word từ một mảng lines
+function buildMultiColFromLines(lines, ncols){
+  const pgGroups=splitIntoParagraphGroups(lines);
+  if(!pgGroups.length)return'';
+
+  // Phân phối đoạn văn đều vào các cột
+  const perCol=Math.ceil(pgGroups.length/ncols);
+  const colGroups=[];
+  for(let g=0;g<ncols;g++){
+    const slice=pgGroups.slice(g*perCol,(g+1)*perCol);
+    // Gộp lại thành lines, ngăn cách bằng dòng trắng
+    colGroups.push(slice.flatMap((p,i)=>i===0?p:['', ...p]));
+  }
+
+  const totalW=9360;
+  const colW=Math.floor(totalW/ncols);
+  const nb=`w:val="none" w:sz="0" w:space="0" w:color="auto"`;
+  const divCol='B8C8D8';
+
+  const cells=colGroups.map((grp,idx)=>{
+    const isLast=idx===ncols-1;
+    const rightBdr=isLast
+      ?`<w:right ${nb}/>`
+      :`<w:right w:val="dashed" w:sz="6" w:space="0" w:color="${divCol}"/>`;
+    const cellXml=md2docxBody(grp.join('\n'))||'<w:p/>';
+    return`<w:tc>
+      <w:tcPr>
+        <w:tcW w:w="${colW}" w:type="dxa"/>
+        <w:tcBorders>
+          <w:top ${nb}/><w:left ${nb}/><w:bottom ${nb}/>${rightBdr}
+        </w:tcBorders>
+        <w:tcMar>
+          <w:left  w:w="80"  w:type="dxa"/>
+          <w:right w:w="100" w:type="dxa"/>
+        </w:tcMar>
+      </w:tcPr>
+      ${cellXml}
+    </w:tc>`;
+  });
+
+  return`<w:tbl>
+  <w:tblPr>
+    <w:tblW w:w="${totalW}" w:type="dxa"/>
+    <w:tblBorders>
+      <w:top ${nb}/><w:left ${nb}/><w:bottom ${nb}/><w:right ${nb}/>
+      <w:insideH ${nb}/><w:insideV ${nb}/>
+    </w:tblBorders>
+    <w:tblLook w:val="0000" w:firstRow="0" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="1" w:noVBand="1"/>
+  </w:tblPr>
+  <w:tblGrid>${Array(ncols).fill(`<w:gridCol w:w="${colW}"/>`).join('')}</w:tblGrid>
+  <w:tr>
+    <w:trPr><w:cantSplit w:val="0"/></w:trPr>
+    ${cells.join('')}
+  </w:tr>
+</w:tbl><w:p/>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// 5b. MARKDOWN → DOCX BODY XML
+// ═══════════════════════════════════════════════════════════
+function xEsc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;')}
+
+function splitMath(text){
+  const parts=[];const re=/(\$\$[\s\S]+?\$\$|\$[^$\n]+?\$)/g;let last=0,m;re.lastIndex=0;
+  while((m=re.exec(text))!==null){if(m.index>last)parts.push({type:'text',v:text.slice(last,m.index)});const raw=m[0];if(raw.startsWith('$$'))parts.push({type:'display',v:raw.slice(2,-2).trim()});else parts.push({type:'inline',v:raw.slice(1,-1).trim()});last=m.index+raw.length;}
+  if(last<text.length)parts.push({type:'text',v:text.slice(last)});return parts;
+}
+
+function inlineRuns(text){
+  let out='';const re=/(\*\*\*(.+?)\*\*\*|___(.+?)___|~~(.+?)~~|\*\*(.+?)\*\*|__(.+?)__|\*([^*\n]+?)\*|_([^_\n]+?)_|`([^`]+?)`|\[([^\]]+?)\]\(([^)]+?)\))/gs;
+  let last=0,m;re.lastIndex=0;
+  while((m=re.exec(text))!==null){if(m.index>last)out+=wrun(text.slice(last,m.index),{});const f=m[0];
+    if(f.startsWith('***')||f.startsWith('___'))out+=wrun(m[2]||m[3],{b:true,i:true});
+    else if(f.startsWith('~~'))out+=wrun(m[4],{strike:true});
+    else if(f.startsWith('**')||f.startsWith('__'))out+=wrun(m[5]||m[6],{b:true});
+    else if(f.startsWith('*')||f.startsWith('_'))out+=wrun(m[7]||m[8],{i:true});
+    else if(f.startsWith('`'))out+=wrun(m[9],{code:true});
+    else if(f.startsWith('['))out+=wrun(m[10],{u:true});
+    last=m.index+f.length;}
+  if(last<text.length)out+=wrun(text.slice(last),{});return out;
+}
+
+function wrun(text,opts){
+  if(!text)return'';let rpr='';
+  if(opts.b)rpr+='<w:b/><w:bCs/>';if(opts.i)rpr+='<w:i/><w:iCs/>';
+  if(opts.strike)rpr+='<w:strike/>';if(opts.u)rpr+='<w:u w:val="single"/>';
+  if(opts.code)rpr+='<w:rFonts w:ascii="Consolas" w:hAnsi="Consolas"/><w:color w:val="C7254E"/><w:sz w:val="18"/><w:szCs w:val="18"/>';
+  return`<w:r>${rpr?`<w:rPr>${rpr}</w:rPr>`:''}<w:t xml:space="preserve">${xEsc(text)}</w:t></w:r>`;
+}
+
+// Decode HTML entities trước khi xử lý (tránh &amp;nbsp; literal trong Word)
+function decodeHtmlEntities(s){
+  return s
+    .replace(/&nbsp;/g,' ')   // non-breaking space → Word hiểu
+    .replace(/&ensp;/g,' ')
+    .replace(/&emsp;/g,'  ')
+    .replace(/&thinsp;/g,' ')
+    .replace(/&amp;/g,'&')
+    .replace(/&lt;/g,'<')
+    .replace(/&gt;/g,'>')
+    .replace(/&quot;/g,'"')
+    .replace(/&#(\d+);/g,(_,n)=>String.fromCodePoint(+n))
+    .replace(/&#x([0-9a-fA-F]+);/g,(_,h)=>String.fromCodePoint(parseInt(h,16)));
+}
+
+function lineContent(line){
+  const clean=decodeHtmlEntities(line);
+  const parts=splitMath(clean);let out='';
+  for(const p of parts){if(p.type==='text')out+=inlineRuns(p.v);else if(p.type==='inline')out+=latex2omml(p.v,false);else out+=latex2omml(p.v,false);}
+  return out;
+}
+
+function para(content,opts={}){
+  let ppr='';
+  if(opts.style)ppr+=`<w:pStyle w:val="${opts.style}"/>`;
+  if(opts.numId!==undefined)ppr+=`<w:numPr><w:ilvl w:val="${opts.lvl||0}"/><w:numId w:val="${opts.numId}"/></w:numPr>`;
+  if(opts.center)ppr+='<w:jc w:val="center"/>';
+  if(opts.right)ppr+='<w:jc w:val="right"/>';
+  if(opts.leftBorder)ppr+=`<w:pBdr><w:left w:val="single" w:sz="18" w:space="4" w:color="${getCssHex('accent-hex','0550AE')}"/></w:pBdr>`;
+  if(opts.bottomBorder)ppr+='<w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="CCCCCC"/></w:pBdr>';
+  if(opts.indent)ppr+=`<w:ind w:left="${opts.indent}"/>`;
+  if(opts.shade)ppr+=`<w:shd w:val="clear" w:color="auto" w:fill="${opts.shade}"/>`;
+  if(opts.noAfter)ppr+='<w:spacing w:after="0"/>';
+  return`<w:p>${ppr?`<w:pPr>${ppr}</w:pPr>`:''}${content}</w:p>`;
+}
+
+function getCssHex(varName,fallback){
+  const v=getComputedStyle(document.body).getPropertyValue('--'+varName).trim();
+  return v||fallback;
+}
+
+function md2docxBody(md){
+  const lines=md.split('\n');let xml='',i=0;
+  while(i<lines.length){
+    const line=lines[i];
+    if(line.trim()===''){i++;continue;}
+    // Dòng kẻ học sinh :::kẻ N [kiểu]
+    const keM=line.trim().match(/^:::kẻ\s+(\d+)(?:\s+(\S+))?$/);
+    if(keM){
+      const n=Math.min(parseInt(keM[1])||1,50);
+      const sty=keM[2]||'ngang';
+      if(sty==='cột2'||sty==='cot2'){xml+=makeRuledLineTable2Col(n);}
+      else{for(let j=0;j<n;j++)xml+=makeRuledLinePara(sty);}
+      i++;continue;
+    }
+    // Multi-column block :::2 or :::3 ... :::
+    const colM=line.trim().match(/^:::([23])$/);
+    if(colM){
+      const ncols=parseInt(colM[1]);i++;
+      const blockLines=[];
+      while(i<lines.length&&lines[i].trim()!==':::'){blockLines.push(lines[i]);i++;}
+      if(i<lines.length)i++; // consume :::
+      xml+=buildMultiColFromLines(blockLines,ncols);
+      continue;
+    }
+    // Display math single line
+    if(line.trim().startsWith('$$')&&line.trim().endsWith('$$')&&line.trim().length>4){xml+=para(latex2omml(line.trim().slice(2,-2).trim(),true),{center:true});i++;continue;}
+    // Display math block
+    if(line.trim()==='$$'){i++;let math='';while(i<lines.length&&lines[i].trim()!=='$$'){math+=lines[i]+'\n';i++;}if(i<lines.length)i++;xml+=para(latex2omml(math.trim(),true),{center:true});continue;}
+    // Headings
+    const hm=line.match(/^(#{1,6})\s+(.+)$/);if(hm){xml+=para(lineContent(hm[2]),{style:`Heading${Math.min(hm[1].length,4)}`});i++;continue;}
+    // HR
+    if(/^[-*_]{3,}$/.test(line.trim())){xml+=para('',{bottomBorder:true});i++;continue;}
+    // Blockquote
+    if(line.startsWith('> ')){let bq='';while(i<lines.length&&lines[i].startsWith('> ')){bq+=lines[i].slice(2)+' ';i++;}xml+=para(lineContent(bq.trim()),{leftBorder:true,indent:360});continue;}
+    // Code block
+    if(line.startsWith('```')){i++;while(i<lines.length&&!lines[i].startsWith('```')){xml+=para(`<w:r><w:rPr><w:rFonts w:ascii="Consolas" w:hAnsi="Consolas"/><w:sz w:val="18"/><w:szCs w:val="18"/><w:color w:val="24292F"/></w:rPr><w:t xml:space="preserve">${xEsc(lines[i])}</w:t></w:r>`,{style:'CodeBlock',noAfter:true});i++;}if(i<lines.length)i++;continue;}
+    // UL
+    const ulm=line.match(/^(\s*)([-*+])\s+(.+)$/);if(ulm){xml+=para(lineContent(ulm[3]),{numId:1,lvl:Math.floor(ulm[1].length/2)});i++;continue;}
+    // OL
+    const olm=line.match(/^(\s*)\d+[.)]\s+(.+)$/);if(olm){xml+=para(lineContent(olm[2]),{numId:2,lvl:Math.floor(olm[1].length/2)});i++;continue;}
+    // Table
+    if(line.includes('|')&&i+1<lines.length&&/^\|?[\s:|-]+\|/.test(lines[i+1])){const tl=[];while(i<lines.length&&lines[i].trim()!='')tl.push(lines[i++]);xml+=buildTable(tl);continue;}
+    // Dòng trắc nghiệm lựa chọn: bắt đầu bằng A. B. C. D. (4 đáp án trên 1 dòng)
+    const choiceLine=line.trim().match(/^\*\*[A-D]\.\*\*/)||line.trim().match(/^[A-D]\.\s/);
+    if(choiceLine){xml+=para(lineContent(line.trim()),{indent:360,noAfter:true});i++;continue;}
+    // Plain paragraph
+    xml+=para(lineContent(line.trim()));i++;
+  }
+  return xml;
+}
+
+function buildTable(tableLines){
+  const parseRow=l=>l.replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+  if(tableLines.length<2)return'';
+  const headers=parseRow(tableLines[0]);
+  const dataRows=tableLines.slice(2).filter(l=>l.includes('|')).map(parseRow);
+  const nc=headers.length||1;const cw=Math.floor(9360/nc);
+  const bdr=`<w:top w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/><w:left w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/><w:bottom w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/><w:right w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/>`;
+  const thBg=getCssHex('th-hex','DDEEFF');
+  const cell=(content,isHdr)=>{const fill=isHdr?thBg:'FFFFFF';const bold=isHdr?'<w:b/><w:bCs/>':'';return`<w:tc><w:tcPr><w:tcW w:w="${cw}" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="${fill}"/><w:tcBorders>${bdr}</w:tcBorders><w:tcMar><w:top w:w="80" w:type="dxa"/><w:left w:w="120" w:type="dxa"/><w:bottom w:w="80" w:type="dxa"/><w:right w:w="120" w:type="dxa"/></w:tcMar></w:tcPr><w:p><w:pPr><w:rPr>${bold}</w:rPr></w:pPr>${lineContent(content)}</w:p></w:tc>`;};
+  let tbl=`<w:tbl><w:tblPr><w:tblStyle w:val="TableGrid"/><w:tblW w:w="9360" w:type="dxa"/></w:tblPr><w:tblGrid>${headers.map(()=>`<w:gridCol w:w="${cw}"/>`).join('')}</w:tblGrid>`;
+  tbl+=`<w:tr><w:trPr><w:tblHeader/></w:trPr>${headers.map(h=>cell(h,true)).join('')}</w:tr>`;
+  for(const row of dataRows){while(row.length<nc)row.push('');tbl+=`<w:tr>${row.slice(0,nc).map(c=>cell(c,false)).join('')}</w:tr>`;}
+  return tbl+'</w:tbl><w:p/>';
+}
+
+// ═══════════════════════════════════════════════════════════
+// 6. HEADER / FOOTER / PAGE NUMBER XML
+// ═══════════════════════════════════════════════════════════
+function getSettings(){
+  const wmEl=document.getElementById('wm-code');
+  const woEl=document.getElementById('wm-opacity');
+  const fsEl=document.getElementById('pdf-fontsize');
+  const lhEl=document.getElementById('pdf-lineh');
+  const mgEl=document.getElementById('pdf-margin');
+  const cpEl=document.getElementById('pdf-compact');
+  return{
+    hdrMain:document.getElementById('hdr-main').value.trim(),
+    hdrSub:document.getElementById('hdr-sub').value.trim(),
+    ftrLeft:document.getElementById('ftr-left').value.trim(),
+    ftrRight:document.getElementById('ftr-right').value.trim(),
+    pgEnable:document.getElementById('pg-enable').checked,
+    pgPos:document.getElementById('pg-pos').value,
+    pgFmt:document.getElementById('pg-fmt').value,
+    answerCol:document.getElementById('answer-col').value,
+    wmCode:wmEl?wmEl.value.trim():'',
+    wmOpacity:woEl?parseFloat(woEl.value)||0:0,
+    pdfFontSize:fsEl?fsEl.value:'12',
+    pdfLineH:lhEl?lhEl.value:'1.78',
+    pdfMargin:mgEl?mgEl.value:'18',
+    pdfCompact:cpEl?cpEl.checked:false,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// WRAP BODY TRONG BẢNG 2 CỘT KHI CÓ CỘT BÀI LÀM
+// ═══════════════════════════════════════════════════════════
+function wrapWithAnswerColumn(bodyXml, colVal, accentHex){
+  if(!colVal) return bodyXml;
+
+  const totalW = 9360;
+  const rightW = colVal==='1/3' ? 3120 : 2340;
+  const leftW  = totalW - rightW;
+
+  // ─────────────────────────────────────────
+  // Cột bài làm: dùng bảng lồng (nested table) để
+  // đảm bảo mỗi dòng có chiều cao EXACT và border
+  // đồng đều, không bị ảnh hưởng bởi paragraph style.
+  // ─────────────────────────────────────────
+  const lineH   = 480;   // DXA ≈ 8.5 mm — thoáng đủ viết tay
+  // 60 dòng ≈ đủ cho 2 trang A4; Word tự ngắt trang khi hết chiều cao
+  const numLines = 60;
+
+  const nb = `w:val="none" w:sz="0" w:space="0" w:color="auto"`;  // no-border shorthand
+
+  // Nhãn "BÀI LÀM" — đặt ngoài nested table để không bị ép chiều cao
+  const labelRow = `<w:p>
+    <w:pPr>
+      <w:jc w:val="center"/>
+      <w:spacing w:before="100" w:after="100" w:line="240" w:lineRule="auto"/>
+      <w:pBdr><w:bottom w:val="single" w:sz="6" w:space="0" w:color="${accentHex}"/></w:pBdr>
+      <w:shd w:val="clear" w:color="auto" w:fill="F0F5FF"/>
+    </w:pPr>
+    <w:r>
+      <w:rPr>
+        <w:b/><w:bCs/>
+        <w:sz w:val="18"/><w:szCs w:val="18"/>
+        <w:color w:val="${accentHex}"/>
+        <w:spacing w:val="300"/>
+      </w:rPr>
+      <w:t xml:space="preserve">B À I   L À M</w:t>
+    </w:r>
+  </w:p>`;
+
+  // Một dòng kẻ = 1 row trong nested table, chiều cao EXACT = lineH
+  // w:tblCellSpacing = 0 đảm bảo không có khoảng cách giữa các dòng
+  const makeLineRow = () => `<w:tr>
+    <w:trPr>
+      <w:trHeight w:val="${lineH}" w:hRule="exact"/>
+      <w:cantSplit w:val="0"/>
+    </w:trPr>
+    <w:tc>
+      <w:tcPr>
+        <w:tcW w:w="${rightW - 200}" w:type="dxa"/>
+        <w:tcBorders>
+          <w:top    ${nb}/>
+          <w:left   ${nb}/>
+          <w:right  ${nb}/>
+          <w:bottom w:val="single" w:sz="4" w:space="0" w:color="BBCCDD"/>
+        </w:tcBorders>
+        <w:shd w:val="clear" w:color="auto" w:fill="F8FBFF"/>
+        <w:tcMar>
+          <w:top    w:w="0" w:type="dxa"/>
+          <w:bottom w:w="0" w:type="dxa"/>
+          <w:left   w:w="80" w:type="dxa"/>
+          <w:right  w:w="80" w:type="dxa"/>
+        </w:tcMar>
+      </w:tcPr>
+      <w:p>
+        <w:pPr>
+          <w:spacing w:before="0" w:after="0" w:line="${lineH}" w:lineRule="exact"/>
+          <w:rPr><w:sz w:val="2"/><w:szCs w:val="2"/></w:rPr>
+        </w:pPr>
+      </w:p>
+    </w:tc>
+  </w:tr>`;
+
+  // Bảng dòng kẻ lồng bên trong cột bài làm
+  const lineTable = `<w:tbl>
+    <w:tblPr>
+      <w:tblW w:w="${rightW - 200}" w:type="dxa"/>
+      <w:tblCellSpacing w:w="0" w:type="dxa"/>
+      <w:tblBorders>
+        <w:top    ${nb}/><w:left   ${nb}/>
+        <w:bottom ${nb}/><w:right  ${nb}/>
+        <w:insideH ${nb}/><w:insideV ${nb}/>
+      </w:tblBorders>
+      <w:tblCellMar>
+        <w:top    w:w="0" w:type="dxa"/>
+        <w:bottom w:w="0" w:type="dxa"/>
+        <w:left   w:w="0" w:type="dxa"/>
+        <w:right  w:w="0" w:type="dxa"/>
+      </w:tblCellMar>
+      <w:tblLook w:val="0000" w:firstRow="0" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="1" w:noVBand="1"/>
+    </w:tblPr>
+    <w:tblGrid><w:gridCol w:w="${rightW - 200}"/></w:tblGrid>
+    ${Array.from({length: numLines}, makeLineRow).join('')}
+  </w:tbl>`;
+
+  return `<w:tbl>
+  <w:tblPr>
+    <w:tblW w:w="${totalW}" w:type="dxa"/>
+    <w:tblBorders>
+      <w:top    ${nb}/><w:left   ${nb}/>
+      <w:bottom ${nb}/><w:right  ${nb}/>
+      <w:insideH ${nb}/><w:insideV ${nb}/>
+    </w:tblBorders>
+    <w:tblLook w:val="0000" w:firstRow="0" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="1" w:noVBand="1"/>
+  </w:tblPr>
+  <w:tblGrid>
+    <w:gridCol w:w="${leftW}"/>
+    <w:gridCol w:w="${rightW}"/>
+  </w:tblGrid>
+  <w:tr>
+    <w:trPr>
+      <w:cantSplit w:val="0"/>
+    </w:trPr>
+    <w:tc>
+      <w:tcPr>
+        <w:tcW w:w="${leftW}" w:type="dxa"/>
+        <w:tcBorders>
+          <w:top ${nb}/><w:left ${nb}/><w:bottom ${nb}/>
+          <w:right w:val="single" w:sz="8" w:space="0" w:color="${accentHex}"/>
+        </w:tcBorders>
+        <w:tcMar><w:right w:w="160" w:type="dxa"/></w:tcMar>
+      </w:tcPr>
+      ${bodyXml}<w:p/>
+    </w:tc>
+    <w:tc>
+      <w:tcPr>
+        <w:tcW w:w="${rightW}" w:type="dxa"/>
+        <w:tcBorders>
+          <w:top ${nb}/>
+          <w:left w:val="single" w:sz="8" w:space="0" w:color="${accentHex}"/>
+          <w:bottom ${nb}/><w:right ${nb}/>
+        </w:tcBorders>
+        <w:shd w:val="clear" w:color="auto" w:fill="F8FBFF"/>
+        <w:tcMar>
+          <w:left  w:w="100" w:type="dxa"/>
+          <w:right w:w="0"   w:type="dxa"/>
+        </w:tcMar>
+      </w:tcPr>
+      ${labelRow}${lineTable}
+    </w:tc>
+  </w:tr>
+</w:tbl>
+<w:p/>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// WATERMARK & PDF EXPORT
+// ═══════════════════════════════════════════════════════════
+
+// Tạo CSS background-image từ SVG tile chéo góc
+function buildWatermarkStyle(text1, text2, opacity){
+  if(!opacity||(!text1&&!text2))return'';
+  const e=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const t1=text1?`<text x="0" y="-8" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" font-weight="bold" fill="#1a1a1a">${e(text1)}</text>`:'';
+  const t2=text2?`<text x="0" y="20" text-anchor="middle" font-family="Arial,sans-serif" font-size="14" fill="#1a1a1a">${e(text2)}</text>`:'';
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="280"><g transform="translate(200,140) rotate(-35)" opacity="${opacity}">${t1}${t2}</g></svg>`;
+  return`background-image:url("data:image/svg+xml,${encodeURIComponent(svg)}");background-repeat:repeat;background-size:380px 260px;`;
+}
+
+// ── Chế độ in tiết kiệm: tự đặt các tham số nhỏ nhất ──
+function applyCompactMode(on){
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+  if(on){set('pdf-fontsize','10');set('pdf-lineh','1.45');set('pdf-margin','10');}
+  else  {set('pdf-fontsize','12');set('pdf-lineh','1.78');set('pdf-margin','18');}
+  updatePreview();
+}
+
+// ── Hàm dùng chung: tạo cửa sổ PDF preview / export ──
+function openPdfWindow(autoPrint){
+  setStatus(autoPrint?'Đang chuẩn bị PDF…':'Đang mở xem trước PDF…','info');
+  doPreview();
+
+  const s=getSettings();
+  const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const fs=parseInt(s.pdfFontSize)||12;
+  const lh=parseFloat(s.pdfLineH)||1.78;
+  const mg=parseInt(s.pdfMargin)||18;
+  const mgSide=Math.round(mg*0.88);
+  const cp=s.pdfCompact;
+
+  // Tính cỡ chữ tiêu đề theo cỡ chữ thân
+  const h1s=Math.max(14,Math.round(fs*1.5));
+  const h2s=Math.max(12,Math.round(fs*1.17));
+  const h3s=Math.max(fs,Math.round(fs*1.02));
+  const hdrS=Math.round(fs*1.08);
+  const subS=Math.round(fs*0.88);
+  const ftrS=Math.round(fs*0.8);
+  // Khoảng cách (compact hay chuẩn)
+  const sp=cp?{p:'.2rem',h1t:'.5rem',h1b:'.25rem',h2t:'.35rem',h2b:'.18rem',gap:'.25rem',pre:'6px',td:'3px 7px',hr:'.5rem'}
+              :{p:'.42rem',h1t:'1rem',h1b:'.5rem',h2t:'.8rem',h2b:'.4rem',gap:'.4rem',pre:'10px',td:'5px 11px',hr:'1rem'};
+
+  const acc='#'+getCssHex('accent-hex','0550AE');
+  const h1c='#'+getCssHex('h1-hex','1F3864');
+  const h2c='#'+getCssHex('h2-hex','2E74B5');
+  const h3c='#'+getCssHex('h3-hex','5B9BD5');
+  const thc='#'+getCssHex('th-hex','DDEEFF');
+
+  const contentHtml=(document.getElementById('preview-content')||{}).innerHTML||'';
+  const wmStyle=buildWatermarkStyle(s.hdrMain,s.wmCode,s.wmOpacity);
+
+  const hdrHtml=(s.hdrMain||s.hdrSub)?`
+  <div class="doc-hdr">
+    ${s.hdrMain?`<div class="hdr-main">${esc(s.hdrMain)}</div>`:''}
+    ${s.hdrSub?`<div class="hdr-sub">${esc(s.hdrSub)}</div>`:''}
+  </div>`:'';
+
+  const ftrHtml=(s.ftrLeft||s.ftrRight)?`
+  <div class="doc-ftr">
+    <span>${esc(s.ftrLeft)}</span>
+    <span>${esc(s.ftrRight)}</span>
+  </div>`:'';
+
+  // Toolbar chỉ hiện ở chế độ xem trước (screen) và không in ra
+  const toolbar=autoPrint?'':
+    `<div class="ptb">
+      <span style="font-weight:700;font-size:.92rem">📄 Xem trước PDF – A4</span>
+      <span style="opacity:.55;font-size:.78rem">│ ${fs}pt · lề ${mg}mm · dòng ${lh}${cp?' · ⚡ Tiết kiệm':''}</span>
+      <button onclick="window.print()"
+        style="background:#27ae60;color:#fff;border:none;padding:5px 18px;border-radius:5px;cursor:pointer;font-weight:700;font-size:.85rem;margin-left:auto">
+        🖨 In / Lưu PDF
+      </button>
+      <button onclick="window.close()"
+        style="background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.28);padding:5px 13px;border-radius:5px;cursor:pointer;font-size:.85rem">
+        ✕ Đóng
+      </button>
+      <span style="opacity:.45;font-size:.72rem">Chọn "Save as PDF" trong hộp thoại in</span>
+    </div>`;
+
+  const html=`<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>${esc(s.hdrMain||'Tài liệu')}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" onload="cssOk=true;go()">
+<style>
+@page{size:A4 portrait;margin:${mg}mm ${mgSide}mm}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-print-color-adjust:exact;color-adjust:exact;print-color-adjust:exact}
+body{font-family:'Times New Roman',Georgia,serif;font-size:${fs}pt;line-height:${lh};color:#1c1e21}
+
+/* ── Xem trước: trang trắng trên nền xám ── */
+@media screen{
+  html{background:#b2bac6;min-height:100vh}
+  body{padding:${autoPrint?'12px':'62px 24px 40px'};display:flex;flex-direction:column;align-items:center}
+  .pw{background:#fff;width:210mm;padding:${mg}mm ${mgSide}mm;box-shadow:0 6px 36px rgba(0,0,0,.3);min-height:297mm;position:relative;${wmStyle}}
+  .ptb{position:fixed;top:0;left:0;right:0;height:52px;background:#1b3451;color:#fff;
+       display:flex;align-items:center;gap:10px;padding:0 18px;
+       font-family:system-ui,sans-serif;z-index:9999;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+}
+
+/* ── In ra PDF ── */
+@media print{
+  body{${wmStyle}}
+  .pw{display:contents}
+  .ptb{display:none}
+}
+
+/* ── Header / Footer ── */
+.doc-hdr{text-align:center;border-bottom:2.5px solid ${acc};padding-bottom:${cp?'6':'9'}px;margin-bottom:${cp?'10':'14'}px}
+.hdr-main{font-size:${hdrS}pt;font-weight:700;color:${h1c};letter-spacing:.2px}
+.hdr-sub{font-size:${subS}pt;color:#444;margin-top:3px}
+.doc-ftr{display:flex;justify-content:space-between;border-top:1px solid #ccc;padding-top:6px;margin-top:${cp?'10':'16'}px;font-size:${ftrS}pt;color:#666}
+
+/* ── Headings ── */
+h1{font-size:${h1s}pt;font-weight:700;margin:${sp.h1t} 0 ${sp.h1b};color:${h1c};border-bottom:2px solid ${acc};padding-bottom:4px;page-break-after:avoid}
+h2{font-size:${h2s}pt;font-weight:700;margin:${sp.h2t} 0 ${sp.h2b};color:${h2c};page-break-after:avoid}
+h3{font-size:${h3s}pt;font-weight:600;margin:${sp.gap} 0 .2rem;color:${h3c};page-break-after:avoid}
+h4{font-size:${fs}pt;font-weight:600;margin:${sp.gap} 0 .15rem;page-break-after:avoid}
+
+/* ── Body text ── */
+p{margin:${sp.p} 0}
+strong{font-weight:700}em{font-style:italic}
+ul,ol{margin:${sp.p} 0 ${sp.p} 1.7rem}li{margin:.1rem 0;page-break-inside:avoid}
+code{background:#f6f8fa;padding:1px 5px;border-radius:3px;font-family:Consolas,monospace;font-size:.84em;color:#c7254e;border:1px solid #e1e4e8}
+pre{background:#f6f8fa;padding:${sp.pre} 12px;border-radius:5px;border:1px solid #e1e4e8;margin:${sp.p} 0;font-size:${Math.round(fs*0.85)}pt}
+pre code{background:none;border:none;color:#24292f;padding:0}
+blockquote{border-left:4px solid ${acc};padding:3px 0 3px 12px;margin:${sp.p} 0;color:#57606a;font-style:italic}
+hr{border:none;border-top:2px solid #ddd;margin:${sp.hr} 0}
+
+/* ── Table ── */
+table{border-collapse:collapse;margin:${sp.p} 0;width:100%;page-break-inside:auto}
+th,td{border:1px solid #ccc;padding:${sp.td};text-align:left}
+th{background:${thc};font-weight:600;color:#1a1a1a}
+tr:nth-child(even) td{background:#f9fafb}
+tr{page-break-inside:avoid}
+
+/* ── Multi-column (:::2/:::3) ── */
+.mc-2col{columns:2;column-gap:1.8rem;column-rule:1px dashed #bcd;margin:${sp.p} 0}
+.mc-3col{columns:3;column-gap:1.2rem;column-rule:1px dashed #bcd;margin:${sp.p} 0}
+.mc-2col p,.mc-3col p{break-inside:avoid;margin:.15rem 0}
+
+/* ── Dòng kẻ học sinh ── */
+.ruled-lines{display:block;margin:2px 0}
+.ruled-lines .rl{display:block}
+.rl-ngang .rl{border-bottom:1px solid rgba(0,0,0,.2);height:9mm}
+.rl-rong  .rl{border-bottom:1px solid rgba(0,0,0,.2);height:14mm}
+.rl-dut   .rl{border-bottom:1px dashed rgba(0,0,0,.22);height:9mm}
+.rl-cham  .rl{border-bottom:1px dotted rgba(0,0,0,.22);height:9mm}
+.rl-o     .rl{border-bottom:1px solid rgba(0,0,0,.2);height:10mm;
+  background-image:repeating-linear-gradient(90deg,transparent 0,transparent calc(10mm - 1px),rgba(0,0,0,.1) calc(10mm - 1px),rgba(0,0,0,.1) 10mm)}
+.rl-cot2  .rl{border-bottom:1px solid rgba(0,0,0,.2);height:9mm;
+  background-image:linear-gradient(90deg,transparent calc(50% - 0.5px),rgba(0,0,0,.18) calc(50% - 0.5px),rgba(0,0,0,.18) calc(50% + 0.5px),transparent calc(50% + 0.5px))}
+
+/* ── KaTeX ── */
+.katex-display{margin:${sp.gap} 0;text-align:center;page-break-inside:avoid}
+</style>
+<script>
+var cssOk=false;
+var AUTO=${autoPrint?'true':'false'};
+function go(){if(cssOk&&AUTO)setTimeout(function(){window.print();},280);}
+window.onafterprint=function(){if(AUTO)window.close();};
+setTimeout(function(){cssOk=true;go();},1800);
+<\/script>
+</head>
+<body>
+${toolbar}
+<div class="pw">
+${hdrHtml}
+${contentHtml}
+${ftrHtml}
+</div>
+</body>
+</html>`;
+
+  const w=window.open('','_blank','width=960,height=920,resizable=yes');
+  if(!w){setStatus('❌ Popup bị chặn – cho phép popup trong cài đặt trình duyệt','err');return;}
+  w.document.write(html);
+  w.document.close();
+  setStatus(autoPrint
+    ?'✅ Cửa sổ PDF đã mở – chọn "Lưu thành PDF" trong hộp thoại in'
+    :'✅ Xem trước A4 đã mở – bấm "In / Lưu PDF" khi hài lòng','ok');
+}
+
+function previewPdf(){ openPdfWindow(false); }
+function exportPdf(){  openPdfWindow(true);  }
+
+// ═══════════════════════════════════════════════════════════
+// PDF BÀI GIẢNG 16:9 – landscape, viền khung theo màu template
+// ═══════════════════════════════════════════════════════════
+function exportLecturePdf(autoPrint=false){
+  const md=document.getElementById('editor').value;
+  const slides=parseMarkdownToSlides(md);
+  if(!slides.length){
+    setStatus('⚠ Thêm # Tiêu đề để tạo slide bài giảng','err');
+    return;
+  }
+  const h1c='#'+getCssHex('h1-hex','1F3864');
+  const acc='#'+getCssHex('accent-hex','0550AE');
+  const school=(document.getElementById('hdr-main').value||'').trim();
+  const sub=(document.getElementById('hdr-sub').value||'').trim();
+  const total=slides.length;
+
+  // Convert markdown inline → HTML, preserving $...$ for KaTeX auto-render
+  function mdL(raw){
+    const mx=[];
+    let s=raw;
+    s=s.replace(/\$\$([^$]+?)\$\$/gs,(m)=>{mx.push(m);return'\x01M'+(mx.length-1)+'\x01';});
+    s=s.replace(/\$([^$\n]+?)\$/g,(m)=>{mx.push(m);return'\x01M'+(mx.length-1)+'\x01';});
+    s=s.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    s=s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+    s=s.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g,'<em>$1</em>');
+    s=s.replace(/`([^`]+?)`/g,'<code>$1</code>');
+    s=s.replace(/\x01M(\d+)\x01/g,(_,i)=>mx[parseInt(i)]);
+    return s;
+  }
+
+  function buildBody(lines){
+    let h='',dmBuf=null;
+    for(const line of lines){
+      const t=line.trim();
+      // multi-line display math collector
+      if(dmBuf!==null){
+        if(t==='$$'){h+='<div class="dm">$$'+dmBuf+'$$</div>';dmBuf=null;}
+        else{dmBuf+=line+'\n';}
+        continue;
+      }
+      if(t==='$$'){dmBuf='';continue;}
+      if(!t){h+='<div class="gap"></div>';continue;}
+      if(/^### /.test(line)){h+='<div class="h3">'+mdL(line.slice(4))+'</div>';continue;}
+      // single-line display math $$...$$
+      if(/^\$\$.+\$\$$/.test(t)){h+='<div class="dm">'+t+'</div>';continue;}
+      const bm=t.match(/^[-*+] (.*)/);
+      if(bm){h+='<div class="bul"><span class="dot">•</span><span>'+mdL(bm[1])+'</span></div>';continue;}
+      const nm=t.match(/^(\d+)\. (.*)/);
+      if(nm){h+='<div class="bul"><span class="dot">'+nm[1]+'.</span><span>'+mdL(nm[2])+'</span></div>';continue;}
+      if(/^---+$/.test(t)){h+='<div class="hr"></div>';continue;}
+      h+='<div class="para">'+mdL(line)+'</div>';
+    }
+    if(dmBuf!==null){h+='<div class="dm">$$'+dmBuf+'$$</div>';}
+    return h;
+  }
+
+  let slidesHtml='';
+  slides.forEach((sl,i)=>{
+    const num=(i+1)+'/'+total;
+    const topTxt=school||(sub)?school+(school&&sub?' &ensp;·&ensp; ':'')+sub:'';
+    if(sl.type==='section'){
+      slidesHtml+=`
+<div class="slide ss">
+  <div class="ss-c1"></div><div class="ss-c2"></div>
+  ${topTxt?'<div class="ss-top">'+topTxt+'</div>':''}
+  <div class="ss-mid"><div class="ss-ttl">${mdL(sl.title)}</div></div>
+  <div class="ss-stripe"></div>
+  <div class="ss-pg">${num}</div>
+</div>`;
+    } else {
+      slidesHtml+=`
+<div class="slide sc">
+  <div class="sc-hdr">
+    <div class="sc-ttl">${mdL(sl.title)}</div>
+    <div class="sc-pg">${num}</div>
+  </div>
+  <div class="sc-line"></div>
+  <div class="sc-cnt">${buildBody(sl.content)}</div>
+</div>`;
+    }
+  });
+
+  const accentRgb=(hex)=>{const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return r+','+g+','+b;};
+  const accRgb=accentRgb(acc);
+
+  const doc=`<!DOCTYPE html>
+<html lang="vi"><head>
+<meta charset="UTF-8">
+<title>Bài giảng PDF 16:9</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<style>
+/* Full 16:9 page – no margins → mỗi slide full màn hình khi trình chiếu */
+@page{size:297mm 167mm;margin:0}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+html,body{background:#888e9a;font-family:"Times New Roman",Times,serif}
+@media print{html,body{background:white}}
+/* Preview toolbar */
+.toolbar{position:fixed;top:0;left:0;right:0;z-index:999;background:#161f2a;padding:7px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 10px rgba(0,0,0,.6)}
+.toolbar button{padding:5px 16px;border:none;border-radius:4px;cursor:pointer;font-size:.83rem;font-weight:600}
+.btn-p{background:${acc};color:#fff}
+.btn-c{background:#3a3a3a;color:#bbb}
+.toolbar .hint{color:#7ab;font-size:.75rem;flex:1;text-align:right;font-style:italic}
+@media print{.toolbar{display:none}}
+.page-wrap{padding-top:48px;display:flex;flex-direction:column;align-items:center;gap:8mm;padding-bottom:8mm}
+@media print{.page-wrap{padding:0;gap:0;display:block}}
+
+/* ── Slide base: 297 × 167mm = exact 16:9, fills entire page when printed ── */
+.slide{
+  width:297mm;height:167mm;position:relative;overflow:hidden;
+  font-family:"Times New Roman",Times,serif;flex-shrink:0;
+  /* modern accent border frame */
+  border-left:6px solid ${acc};border-right:2px solid ${acc};
+  border-top:2px solid ${acc};border-bottom:2px solid ${acc};
+}
+@media screen{.slide{box-shadow:0 6px 36px rgba(0,0,0,.32);border-radius:3px}}
+@media print{.slide{page-break-after:always;border-radius:0}}
+@media print{.slide:last-child{page-break-after:auto}}
+
+/* ── Section slide ── */
+.ss{background:${h1c};display:flex;flex-direction:column}
+.ss-c1{position:absolute;bottom:-35mm;right:-25mm;width:100mm;height:100mm;border-radius:50%;background:rgba(255,255,255,.07)}
+.ss-c2{position:absolute;top:-25mm;left:-18mm;width:70mm;height:70mm;border-radius:50%;background:rgba(255,255,255,.05)}
+.ss-top{position:absolute;top:8mm;left:0;right:0;text-align:center;color:rgba(255,255,255,.55);font-size:5.5mm;letter-spacing:.3mm;z-index:1}
+.ss-mid{position:relative;z-index:1;flex:1;display:flex;align-items:center;justify-content:center;padding:12mm 24mm}
+.ss-ttl{color:#fff;font-size:16mm;font-weight:700;text-align:center;line-height:1.3;word-break:break-word}
+.ss-ttl .katex{color:#fff;font-size:.88em}
+.ss-ttl strong{color:rgba(${accRgb},.95)}
+.ss-stripe{position:absolute;bottom:0;left:0;right:0;height:6mm;background:${acc};z-index:2}
+.ss-pg{position:absolute;bottom:1mm;right:5mm;color:rgba(255,255,255,.4);font-size:3.8mm;z-index:3}
+
+/* ── Content slide ── */
+.sc{background:#fff;display:flex;flex-direction:column}
+/* Tối giản header: chỉ 18mm, không chip, title + số trang */
+.sc-hdr{
+  background:${h1c};height:18mm;flex-shrink:0;
+  display:flex;align-items:center;padding:0 7mm 0 8mm;
+}
+.sc-ttl{flex:1;color:#fff;font-size:8.5mm;font-weight:700;line-height:1.2;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.sc-ttl .katex{color:#fff;font-size:.88em}
+.sc-ttl strong{color:rgba(${accRgb},.85)}
+.sc-pg{color:rgba(255,255,255,.4);font-size:3.8mm;white-space:nowrap;padding-left:5mm;flex-shrink:0}
+/* Thin accent separator */
+.sc-line{height:2px;background:${acc};flex-shrink:0}
+/* Body: full remaining height ~147mm, content only */
+.sc-cnt{
+  flex:1;padding:5mm 10mm 4mm 9mm;
+  font-size:8.5mm;line-height:1.35;color:#111;overflow:hidden
+}
+.sc-cnt .katex{font-size:1em}
+.sc-cnt .katex-display{margin:2mm 0;text-align:center;overflow-x:hidden}
+/* Content elements */
+.para{margin-bottom:2mm}
+.gap{height:2mm}
+.hr{border:none;border-top:1px solid #ddd;margin:2.5mm 0}
+.h3{font-size:9mm;font-weight:700;color:${acc};margin:2.5mm 0 1.5mm;padding-bottom:.8mm;border-bottom:1.5px solid ${acc}}
+.h3 .katex{color:inherit}
+.bul{display:flex;gap:2.5mm;margin-bottom:1.5mm;align-items:flex-start}
+.dot{color:${acc};font-weight:700;flex-shrink:0;min-width:5mm;padding-top:.5mm}
+.dm{text-align:center;margin:2.5mm 0;font-size:9mm}
+strong{color:${acc};font-weight:700}
+em{font-style:italic}
+code{background:#f0f2f5;padding:0 1.5mm;border-radius:1mm;font-size:6mm;font-family:"Courier New",monospace}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <button class="btn-p" onclick="window.print()">🖨 In / Lưu PDF</button>
+  <button class="btn-c" onclick="window.close()">✕ Đóng</button>
+  <span class="hint">Bài giảng 16:9 · ${total} slide · Hộp thoại in: <b>Khổ giấy tùy chỉnh 297×167mm</b> hoặc <b>Fit to page</b> · Landscape</span>
+</div>
+<div class="page-wrap">
+${slidesHtml}
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"><\/script>
+<script>
+window.addEventListener('load',function(){
+  renderMathInElement(document.body,{
+    delimiters:[
+      {left:'$$',right:'$$',display:true},
+      {left:'$',right:'$',display:false}
+    ],
+    throwOnError:false,ignoredTags:['script','noscript','style','textarea','pre']
+  });
+  ${autoPrint?'setTimeout(()=>window.print(),700);':''}
+});
+<\/script>
+</body></html>`;
+
+  const win=window.open('','_blank','width=1366,height=900');
+  if(!win){setStatus('❌ Trình duyệt chặn popup – cho phép popup rồi thử lại','err');return;}
+  win.document.write(doc);
+  win.document.close();
+  setStatus(autoPrint?'✅ Đang mở hộp thoại in bài giảng 16:9…':'✅ Đã mở xem trước bài giảng 16:9 ('+total+' slide)','ok');
+}
+
+// ═══════════════════════════════════════════════════════════
+// PPT EXPORT  (projector-ready, Times New Roman, all math as PNG)
+// ═══════════════════════════════════════════════════════════
+
+// Load html2canvas once on demand
+let _html2canvasReady=null;
+function ensureHtml2Canvas(){
+  if(_html2canvasReady)return _html2canvasReady;
+  _html2canvasReady=new Promise((res,rej)=>{
+    if(window.html2canvas)return res();
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    s.onload=res; s.onerror=()=>rej(new Error('html2canvas load failed'));
+    document.head.appendChild(s);
+  });
+  return _html2canvasReady;
+}
+
+/* Render a raw text line (may contain $...$ and $$...$$) into KaTeX HTML.
+   Display math $$...$$ is rendered inline (not block) so it fits in a line. */
+/* Convert raw markdown line to HTML with math + bold (accent color) + italic.
+   boldColor: hex WITH #, e.g. '#6D28D9'. Pass null for default bold (white on dark BG). */
+function lineToHtml(raw, boldColor){
+  let s=raw;
+  // Bold **text** → strong with optional accent color
+  s=s.replace(/\*\*(.+?)\*\*/g, boldColor
+    ?`<strong style="font-weight:700;color:${boldColor}">$1</strong>`
+    :'<strong>$1</strong>');
+  // Italic *text*
+  s=s.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g,'<em>$1</em>');
+  // Display math $$...$$ (rendered inline for slide context)
+  s=s.replace(/\$\$([^$]+?)\$\$/gs,(_,m)=>
+    katex.renderToString(m.trim(),{displayMode:false,throwOnError:false,output:'html'}));
+  // Inline math $...$
+  s=s.replace(/\$([^$\n]+?)\$/g,(_,m)=>
+    katex.renderToString(m.trim(),{displayMode:false,throwOnError:false,output:'html'}));
+  return s;
+}
+
+/* Render HTML to transparent PNG via html2canvas.
+   Returns {dataUrl, widthPx, heightPx} at scale=2.
+   bgColor=null → transparent background. */
+async function htmlToPng(htmlContent,{fontSize=26,maxWidthPx=960,bgColor=null,color='#111111',bold=false,centered=false,paddingH=14,paddingV=10}={}){
+  await ensureHtml2Canvas();
+  const div=document.createElement('div');
+  div.style.cssText=[
+    'position:fixed','top:-9000px','left:20px',
+    bgColor?`background:${bgColor}`:'background:transparent',
+    `color:${color}`,
+    `font-size:${fontSize}px`,
+    `font-family:"Times New Roman",Times,serif`,
+    bold?'font-weight:700':'font-weight:400',
+    centered?'text-align:center':'text-align:left',
+    'line-height:1.5',
+    `padding:${paddingV}px ${paddingH}px`,
+    `max-width:${maxWidthPx}px`,
+    'width:max-content',
+    'white-space:pre-wrap',
+    'word-break:break-word',
+  ].join(';');
+  div.innerHTML=htmlContent;
+  document.body.appendChild(div);
+  await new Promise(r=>requestAnimationFrame(r));
+  await new Promise(r=>requestAnimationFrame(r));
+  const canvas=await html2canvas(div,{
+    backgroundColor:bgColor||null,   // null = transparent
+    scale:2,logging:false,useCORS:true,allowTaint:true
+  });
+  document.body.removeChild(div);
+  return{dataUrl:canvas.toDataURL('image/png'),widthPx:canvas.width,heightPx:canvas.height};
+}
+
+/* Does a raw text string contain any math? */
+function hasMathInLine(s){return /\$/.test(s);}
+
+/* Strip markdown bold/italic for plain text runs */
+function mdToPlain(s){
+  return s.replace(/\*\*(.+?)\*\*/g,'$1').replace(/\*(.+?)\*/g,'$1').replace(/`(.+?)`/g,'$1').trim();
+}
+
+/* Parse markdown into slide objects:
+   # H1  → section slide (dark BG)
+   ## H2 → content slide (white body)
+*/
+function parseMarkdownToSlides(md){
+  const lines=md.split('\n');
+  const slides=[];
+  let cur=null;
+  const push=()=>{if(cur)slides.push(cur);};
+  for(const line of lines){
+    if(/^# /.test(line)){push();cur={type:'section',title:line.slice(2).trim(),content:[]};}
+    else if(/^## /.test(line)){push();cur={type:'content',title:line.slice(3).trim(),content:[]};}
+    else if(cur){
+      if(/^:::[23]?\s*$/.test(line))continue;
+      // === (3+ dấu =) → ngắt slide, tạo slide mới cùng tiêu đề
+      if(/^===+\s*$/.test(line)){
+        push();
+        cur={type:cur.type,title:cur.title,content:[]};
+        continue;
+      }
+      cur.content.push(line);
+    }
+  }
+  push();
+  return slides;
+}
+
+/* ── Main PPT export ── */
+async function exportPptx(){
+  if(typeof PptxGenJS==='undefined'){
+    setStatus('❌ PptxGenJS chưa tải, thử lại','err');return;
+  }
+  const md=document.getElementById('editor').value.trim();
+  if(!md){setStatus('⚠ Editor trống','err');return;}
+  setStatus('Đang tạo PowerPoint…','info');
+  await new Promise(r=>setTimeout(r,30));
+
+  try{
+    await ensureHtml2Canvas(); // preload now
+
+    // ── Theme colours ──
+    const h1Hex=getCssHex('h1-hex','1F3864');
+    const accentHex=getCssHex('accent-hex','0550AE');
+
+    // Slide canvas: 16×9, 10"×5.625"
+    const W=10, H=5.625;
+    const FONT='Times New Roman';
+    const CONTENT_X=0.4, CONTENT_W=W-0.8;  // left/width of body area
+    const HEADER_H=0.82;                    // height of title bar
+    const BODY_TOP=HEADER_H+0.12;           // where body content starts
+    const BODY_BOT=H-0.15;                  // bottom margin
+    const BODY_H=BODY_BOT-BODY_TOP;         // available body height ~4.3"
+    const IMG_DPI=192;                      // canvas is scale:2 → 192px/inch
+
+    const pptx=new PptxGenJS();
+    pptx.layout='LAYOUT_16x9';
+    const hdrMain=document.getElementById('hdr-main').value.trim();
+    pptx.title=hdrMain||'Bài giảng';
+
+    let slides=parseMarkdownToSlides(md);
+    if(!slides.length){
+      slides=[{type:'content',title:'Nội dung',content:md.split('\n')}];
+    }
+    const total=slides.length;
+
+    for(let si=0;si<slides.length;si++){
+      const sl=slides[si];
+      const slide=pptx.addSlide();
+
+      const ACCENT_CSS='#'+accentHex; // CSS color with #
+
+      /* ─── SECTION SLIDE ─── */
+      if(sl.type==='section'){
+        slide.addShape(pptx.ShapeType.rect,{x:0,y:0,w:W,h:H,fill:{color:h1Hex}});
+        slide.addShape(pptx.ShapeType.rect,{x:0,y:H-0.14,w:W,h:0.14,fill:{color:accentHex}});
+
+        // Title always as transparent PNG so math + bold work
+        const titleHtml=lineToHtml(sl.title,null/* no accent recolor on dark bg */);
+        const {dataUrl:tdUrl,widthPx:tdW,heightPx:tdH}=await htmlToPng(titleHtml,{
+          fontSize:46,maxWidthPx:1100,color:'#FFFFFF',bold:true,centered:true,paddingH:20,paddingV:14
+        });
+        const tiw=Math.min(CONTENT_W,(tdW/IMG_DPI));
+        const tih=Math.min(H-0.5,(tdH/IMG_DPI));
+        slide.addImage({data:tdUrl,x:(W-tiw)/2,y:(H-tih)/2,w:tiw,h:tih});
+        slide.addText(`${si+1} / ${total}`,{
+          x:W-1.2,y:H-0.38,w:1.1,h:0.28,fontSize:12,color:'8899BB',fontFace:FONT,align:'right'
+        });
+        continue;
+      }
+
+      /* ─── CONTENT SLIDE ─── */
+      slide.addShape(pptx.ShapeType.rect,{x:0,y:0,w:W,h:HEADER_H,fill:{color:h1Hex}});
+      slide.addShape(pptx.ShapeType.rect,{x:0,y:HEADER_H,w:W,h:0.04,fill:{color:accentHex}});
+      slide.addShape(pptx.ShapeType.rect,{x:0,y:HEADER_H+0.04,w:W,h:H-HEADER_H-0.04,fill:{color:'FFFFFF'}});
+
+      // Slide title — transparent PNG (white text on dark header)
+      {
+        const th=lineToHtml(sl.title,null);
+        const {dataUrl,widthPx,heightPx}=await htmlToPng(th,{
+          fontSize:28,maxWidthPx:1080,color:'#FFFFFF',bold:true,paddingH:10,paddingV:8
+        });
+        const iw=Math.min(W-0.8,(widthPx/IMG_DPI));
+        const ih=Math.min(HEADER_H-0.06,(heightPx/IMG_DPI));
+        slide.addImage({data:dataUrl,x:0.35,y:(HEADER_H-ih)/2,w:iw,h:ih});
+      }
+      slide.addText(`${si+1}/${total}`,{
+        x:W-0.55,y:0.12,w:0.45,h:0.32,fontSize:10,color:'99BBDD',fontFace:FONT,align:'right'
+      });
+
+      /* ── Build content items ── */
+      const items=[];
+      for(const raw of sl.content){
+        if(raw.trim()===''){items.push({kind:'blank'});continue;}
+        const dm=raw.trim().match(/^\$\$(.+?)\$\$$/s);
+        if(dm){items.push({kind:'display',raw:dm[1].trim()});continue;}
+        if(/^### /.test(raw)){items.push({kind:'h3',raw:raw.replace(/^### /,'').trim()});continue;}
+        items.push({kind:'line',raw,hasMath:hasMathInLine(raw)});
+      }
+
+      /* ── Render and place content items ── */
+      let cy=BODY_TOP;
+      const GAP=0.09;
+
+      for(const item of items){
+        if(cy>=BODY_BOT-0.15)break;
+
+        if(item.kind==='blank'){cy+=0.12;continue;}
+
+        if(item.kind==='h3'){
+          const remH=BODY_BOT-cy;if(remH<0.28)break;
+          // H3 always as image: bold accent color, transparent bg
+          const html=lineToHtml(item.raw,ACCENT_CSS);
+          const {dataUrl,widthPx,heightPx}=await htmlToPng(html,{
+            fontSize:22,maxWidthPx:1040,color:ACCENT_CSS,bold:true,paddingH:8,paddingV:6
+          });
+          const iw=Math.min(CONTENT_W,(widthPx/IMG_DPI));
+          const ih=Math.min(remH-GAP,(heightPx/IMG_DPI));
+          slide.addImage({data:dataUrl,x:CONTENT_X,y:cy,w:iw,h:ih});
+          cy+=ih+GAP;
+          continue;
+        }
+
+        if(item.kind==='display'){
+          const remH=BODY_BOT-cy;if(remH<0.3)break;
+          // Standalone $$...$$ — KaTeX displayMode, transparent bg, centered
+          const dispHtml=katex.renderToString(item.raw,{displayMode:true,throwOnError:false,output:'html'});
+          const {dataUrl,widthPx,heightPx}=await htmlToPng(dispHtml,{
+            fontSize:30,maxWidthPx:1000,color:'#111111',centered:true,paddingH:16,paddingV:10
+          });
+          const iw=Math.min(CONTENT_W,(widthPx/IMG_DPI));
+          const ih=Math.min(remH-GAP,(heightPx/IMG_DPI));
+          slide.addImage({data:dataUrl,x:CONTENT_X+(CONTENT_W-iw)/2,y:cy,w:iw,h:ih});
+          cy+=ih+GAP*1.5;
+          continue;
+        }
+
+        if(item.kind==='line'){
+          const remH=BODY_BOT-cy;if(remH<0.24)break;
+          const raw=item.raw;
+          const listM=raw.match(/^(\s*)([-*+]|\d+\.)\s+(.*)/);
+          const lineText=listM?listM[3]:raw;
+          const bullet=listM?(/^\d+\./.test(listM[2])?listM[2]+' ':'• '):'';
+
+          // Always render as transparent PNG — handles math, bold (accent color), italic
+          const html=(bullet?`<strong style="color:#333333">${bullet}</strong>`:'')
+                     +lineToHtml(lineText,ACCENT_CSS);
+          const {dataUrl,widthPx,heightPx}=await htmlToPng(html,{
+            fontSize:24,maxWidthPx:listM?970:1020,color:'#111111',paddingH:listM?6:8,paddingV:5
+          });
+          const iw=Math.min(CONTENT_W-0.05,(widthPx/IMG_DPI));
+          const ih=Math.min(remH-GAP,(heightPx/IMG_DPI));
+          const ix=listM?CONTENT_X+0.18:CONTENT_X;
+          slide.addImage({data:dataUrl,x:ix,y:cy,w:iw,h:ih});
+          cy+=ih+GAP;
+        }
+      }
+    }
+
+    const fname=(hdrMain||'BaiGiang').replace(/[^a-zA-Z0-9À-ỹ _-]/g,'_');
+    await pptx.writeFile({fileName:fname+'.pptx'});
+    setStatus(`✅ Đã xuất ${slides.length} slide thành PowerPoint!`,'ok');
+  }catch(e){
+    setStatus('❌ Lỗi xuất PPT: '+e.message,'err');
+    console.error(e);
+  }
+}
+
+// Parse markdown into slide objects
+
+// (old exportPptx + latexToUnicode removed)
+
+function hasHeader(s){return s.hdrMain||s.hdrSub}
+function hasFooter(s){return s.ftrLeft||s.ftrRight||s.pgEnable}
+
+function buildHeaderXml(s){
+  const accentHex=getCssHex('accent-hex','0550AE');
+  const h1Hex=getCssHex('h1-hex','1F3864');
+  let rows='';
+  if(s.hdrMain)rows+=`<w:p><w:pPr><w:jc w:val="center"/><w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="${accentHex}"/></w:pBdr></w:pPr><w:r><w:rPr><w:b/><w:bCs/><w:sz w:val="22"/><w:szCs w:val="22"/><w:color w:val="${h1Hex}"/></w:rPr><w:t>${xEsc(s.hdrMain)}</w:t></w:r></w:p>`;
+  if(s.hdrSub)rows+=`<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:sz w:val="18"/><w:szCs w:val="18"/><w:color w:val="555555"/></w:rPr><w:t>${xEsc(s.hdrSub)}</w:t></w:r></w:p>`;
+  if(!rows)rows='<w:p/>';
+  return`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:hdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${rows}</w:hdr>`;
+}
+
+function buildFooterXml(s){
+  const pgField=`<w:fldSimple w:instr=" PAGE "><w:r><w:rPr><w:noProof/></w:rPr><w:t>1</w:t></w:r></w:fldSimple>`;
+  const npField=`<w:fldSimple w:instr=" NUMPAGES "><w:r><w:rPr><w:noProof/></w:rPr><w:t>1</w:t></w:r></w:fldSimple>`;
+  let pgContent='';
+  if(s.pgEnable){
+    if(s.pgFmt==='page')pgContent=`<w:r><w:t xml:space="preserve">Trang </w:t></w:r>${pgField}<w:r><w:t xml:space="preserve"> / </w:t></w:r>${npField}`;
+    else if(s.pgFmt==='dash')pgContent=`<w:r><w:t xml:space="preserve">— </w:t></w:r>${pgField}<w:r><w:t xml:space="preserve"> —</w:t></w:r>`;
+    else pgContent=`<w:r><w:t xml:space="preserve">Trang </w:t></w:r>${pgField}`;
+  }
+  const jcMap={center:'center',right:'right',left:'left'};
+  const jc=jcMap[s.pgPos]||'center';
+
+  // Build footer: left text | center page | right text
+  let ftrXml='';
+  if(s.ftrLeft||s.ftrRight){
+    // Three-column layout using tab stops
+    ftrXml=`<w:p><w:pPr><w:jc w:val="left"/></w:pPr>`;
+    if(s.ftrLeft)ftrXml+=`<w:r><w:rPr><w:sz w:val="18"/><w:szCs w:val="18"/><w:color w:val="888888"/></w:rPr><w:t xml:space="preserve">${xEsc(s.ftrLeft)}</w:t></w:r>`;
+    if(pgContent)ftrXml+=`<w:r><w:rPr><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr><w:tab/></w:r>${pgContent}`;
+    if(s.ftrRight)ftrXml+=`<w:r><w:rPr><w:sz w:val="18"/><w:szCs w:val="18"/><w:color w:val="888888"/></w:rPr><w:tab/><w:t>${xEsc(s.ftrRight)}</w:t></w:r>`;
+    ftrXml+=`</w:p>`;
+  }else if(pgContent){
+    ftrXml=`<w:p><w:pPr><w:jc w:val="${jc}"/></w:pPr><w:r><w:rPr><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr></w:r>${pgContent}</w:p>`;
+  }else{ftrXml='<w:p/>';}
+  return`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${ftrXml}</w:ftr>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// 7. BUILD .DOCX
+// ═══════════════════════════════════════════════════════════
+async function exportDocx(){
+  const md=document.getElementById('editor').value;
+  setStatus('Đang tạo file Word...','info');
+  try{
+    await new Promise(r=>setTimeout(r,30));
+    const s=getSettings();
+    let bodyXml=md2docxBody(md);
+    const h1Hex=getCssHex('h1-hex','1F3864');
+    const h2Hex=getCssHex('h2-hex','2E74B5');
+    const h3Hex=getCssHex('h3-hex','5B9BD5');
+    const accentHex=getCssHex('accent-hex','0550AE');
+    const thHex=getCssHex('th-hex','DDEEFF');
+
+    // Bọc trong bảng 2 cột nếu có cột bài làm
+    if(s.answerCol) bodyXml=wrapWithAnswerColumn(bodyXml, s.answerCol, accentHex);
+
+    const useHdr=hasHeader(s);
+    const useFtr=hasFooter(s);
+
+    // sectPr references
+    let hdrRef=useHdr?`<w:headerReference w:type="default" r:id="rId4"/>`:'';
+    let ftrRef=useFtr?`<w:footerReference w:type="default" r:id="rId5"/>`:'';
+
+    const docXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
+  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+  xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" mc:Ignorable="w14">
+<w:body>${bodyXml}
+<w:sectPr>
+  ${hdrRef}${ftrRef}
+  <w:pgSz w:w="12240" w:h="15840"/>
+  <w:pgMar w:top="1440" w:right="1260" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/>
+</w:sectPr>
+</w:body>
+</w:document>`;
+
+    let relsEntries=`<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/>
+  <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>`;
+    if(useHdr)relsEntries+=`\n  <Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header1.xml"/>`;
+    if(useFtr)relsEntries+=`\n  <Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/>`;
+
+    let ctOverrides=`<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+  <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
+  <Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>
+  <Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>`;
+    if(useHdr)ctOverrides+=`\n  <Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/>`;
+    if(useFtr)ctOverrides+=`\n  <Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/>`;
+
+    const zip=new JSZip();
+    zip.file('[Content_Types].xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">\n  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>\n  <Default Extension="xml" ContentType="application/xml"/>\n  ${ctOverrides}\n</Types>`);
+    zip.file('_rels/.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>\n</Relationships>`);
+    zip.file('word/document.xml',docXml);
+    zip.file('word/styles.xml',buildStylesXml(h1Hex,h2Hex,h3Hex,accentHex,thHex));
+    zip.file('word/settings.xml',settingsXml());
+    zip.file('word/numbering.xml',numberingXml());
+    zip.file('word/_rels/document.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n  ${relsEntries}\n</Relationships>`);
+    if(useHdr)zip.file('word/header1.xml',buildHeaderXml(s));
+    if(useFtr)zip.file('word/footer1.xml',buildFooterXml(s));
+
+    const blob=await zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+    saveAs(blob,'document.docx');
+    setStatus('✅ Xuất Word thành công!','ok');
+  }catch(e){setStatus('❌ Lỗi: '+e.message,'err');console.error(e);}
+}
+
+function buildStylesXml(h1,h2,h3,accent,thBg){
+  return`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:docDefaults>
+    <w:rPrDefault><w:rPr>
+      <w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/>
+      <w:sz w:val="24"/><w:szCs w:val="24"/>
+      <w:lang w:val="vi-VN" w:eastAsia="vi-VN"/>
+    </w:rPr></w:rPrDefault>
+    <w:pPrDefault><w:pPr>
+      <w:spacing w:after="120" w:line="276" w:lineRule="auto"/>
+    </w:pPr></w:pPrDefault>
+  </w:docDefaults>
+  <w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>
+  <w:style w:type="paragraph" w:styleId="Heading1">
+    <w:name w:val="heading 1"/><w:basedOn w:val="Normal"/>
+    <w:pPr><w:outlineLvl w:val="0"/><w:spacing w:before="360" w:after="120"/><w:keepNext/>
+      <w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="${accent}"/></w:pBdr></w:pPr>
+    <w:rPr><w:b/><w:bCs/><w:sz w:val="44"/><w:szCs w:val="44"/><w:color w:val="${h1}"/></w:rPr>
+  </w:style>
+  <w:style w:type="paragraph" w:styleId="Heading2">
+    <w:name w:val="heading 2"/><w:basedOn w:val="Normal"/>
+    <w:pPr><w:outlineLvl w:val="1"/><w:spacing w:before="280" w:after="100"/><w:keepNext/></w:pPr>
+    <w:rPr><w:b/><w:bCs/><w:sz w:val="34"/><w:szCs w:val="34"/><w:color w:val="${h2}"/></w:rPr>
+  </w:style>
+  <w:style w:type="paragraph" w:styleId="Heading3">
+    <w:name w:val="heading 3"/><w:basedOn w:val="Normal"/>
+    <w:pPr><w:outlineLvl w:val="2"/><w:spacing w:before="200" w:after="80"/><w:keepNext/></w:pPr>
+    <w:rPr><w:b/><w:bCs/><w:sz w:val="28"/><w:szCs w:val="28"/><w:color w:val="${h3}"/></w:rPr>
+  </w:style>
+  <w:style w:type="paragraph" w:styleId="Heading4">
+    <w:name w:val="heading 4"/><w:basedOn w:val="Normal"/>
+    <w:pPr><w:outlineLvl w:val="3"/><w:spacing w:before="160" w:after="60"/></w:pPr>
+    <w:rPr><w:b/><w:bCs/><w:sz w:val="24"/><w:color w:val="${h1}"/></w:rPr>
+  </w:style>
+  <w:style w:type="paragraph" w:styleId="CodeBlock">
+    <w:name w:val="Code Block"/><w:basedOn w:val="Normal"/>
+    <w:pPr><w:spacing w:before="0" w:after="0"/><w:shd w:val="clear" w:color="auto" w:fill="F6F8FA"/>
+      <w:pBdr><w:top w:val="single" w:sz="2" w:space="0" w:color="E1E4E8"/><w:left w:val="single" w:sz="2" w:space="0" w:color="E1E4E8"/><w:bottom w:val="single" w:sz="2" w:space="0" w:color="E1E4E8"/><w:right w:val="single" w:sz="2" w:space="0" w:color="E1E4E8"/></w:pBdr>
+      <w:ind w:left="120" w:right="120"/>
+    </w:pPr>
+    <w:rPr><w:rFonts w:ascii="Consolas" w:hAnsi="Consolas"/><w:sz w:val="18"/><w:szCs w:val="18"/></w:rPr>
+  </w:style>
+  <w:style w:type="paragraph" w:styleId="ExamChoice">
+    <w:name w:val="Exam Choice"/><w:basedOn w:val="Normal"/>
+    <w:pPr><w:spacing w:before="0" w:after="40" w:line="240" w:lineRule="auto"/><w:ind w:left="360"/></w:pPr>
+    <w:rPr><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr>
+  </w:style>
+  <w:style w:type="table" w:styleId="TableGrid">
+    <w:name w:val="Table Grid"/>
+    <w:tblPr><w:tblBorders>
+      <w:top w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/><w:left w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/>
+      <w:bottom w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/><w:right w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/>
+      <w:insideH w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/><w:insideV w:val="single" w:sz="4" w:space="0" w:color="CCCCCC"/>
+    </w:tblBorders></w:tblPr>
+  </w:style>
+</w:styles>`;
+}
+
+function settingsXml(){return`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:settings xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:defaultTabStop w:val="720"/><w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/></w:compat><m:mathPr><m:mathFont m:val="Cambria Math"/><m:brkBin m:val="before"/><m:brkBinSub m:val="--"/><m:smallFrac m:val="0"/><m:dispDef/><m:lMargin m:val="0"/><m:rMargin m:val="0"/><m:defJc m:val="centerGroup"/><m:wrapIndent m:val="1440"/><m:intLim m:val="subSup"/><m:naryLim m:val="undOvr"/></m:mathPr></w:settings>`}
+
+function numberingXml(){
+  const bl=[0,1,2,3,4].map(i=>`<w:lvl w:ilvl="${i}"><w:start w:val="1"/><w:numFmt w:val="bullet"/><w:lvlText w:val="•"/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="${720+i*360}" w:hanging="360"/></w:pPr><w:rPr><w:rFonts w:ascii="Symbol" w:hAnsi="Symbol" w:hint="default"/></w:rPr></w:lvl>`).join('');
+  const nl=[0,1,2,3,4].map(i=>`<w:lvl w:ilvl="${i}"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%${i+1}."/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="${720+i*360}" w:hanging="360"/></w:pPr></w:lvl>`).join('');
+  return`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="hybridMultilevel"/>${bl}</w:abstractNum><w:abstractNum w:abstractNumId="1"><w:multiLevelType w:val="hybridMultilevel"/>${nl}</w:abstractNum><w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num><w:num w:numId="2"><w:abstractNumId w:val="1"/></w:num></w:numbering>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// 8. PREVIEW
+// ═══════════════════════════════════════════════════════════
+let previewTimer=null;
+function updatePreview(){
+  clearTimeout(previewTimer);
+  previewTimer=setTimeout(doPreview,150);
+}
+
+function doPreview(){
+  const md=document.getElementById('editor').value;
+  const content=document.getElementById('preview-content');
+  const s=getSettings();
+  try{
+    content.innerHTML=marked.parse(preprocessAll(md));
+    renderMathInElement(content,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false,errorColor:'#f85149'});
+  }catch(e){content.innerHTML='<span style="color:red">Lỗi: '+e.message+'</span>';}
+
+  // ── Header ──
+  const ph=document.getElementById('preview-doc-header');
+  const phMain=document.getElementById('ph-main');
+  const phSub=document.getElementById('ph-sub');
+  if(s.hdrMain||s.hdrSub){
+    ph.classList.add('visible');
+    phMain.textContent=s.hdrMain; phMain.style.display=s.hdrMain?'':'none';
+    phSub.textContent=s.hdrSub;  phSub.style.display=s.hdrSub?'':'none';
+  }else{ph.classList.remove('visible');}
+
+  // ── Footer ──
+  const pf=document.getElementById('preview-doc-footer');
+  const pfLeft=document.getElementById('pf-left');
+  const pfPage=document.getElementById('pf-page');
+  const pfRight=document.getElementById('pf-right');
+  if(s.ftrLeft||s.ftrRight||s.pgEnable){
+    pf.classList.add('visible');
+    pfLeft.textContent=s.ftrLeft; pfRight.textContent=s.ftrRight;
+    if(s.pgEnable){const fmts={page:'Trang 1 / ?',dash:'— 1 —',num:'Trang 1'};pfPage.textContent=fmts[s.pgFmt]||'Trang 1';}
+    else pfPage.textContent='';
+  }else{pf.classList.remove('visible');}
+
+  // ── Answer column preview ──
+  const acb=document.getElementById('answer-col-bar');
+  const colVal=s.answerCol;
+  if(colVal){
+    const pct=colVal==='1/3'?33.33:25;
+    acb.style.width=pct+'%';
+    // Shrink content area
+    document.getElementById('preview-content').style.marginRight=pct+'%';
+    document.getElementById('preview-doc-header').style.marginRight=pct+'%';
+    document.getElementById('preview-doc-footer').style.marginRight=pct+'%';
+    acb.classList.add('visible');
+  }else{
+    acb.classList.remove('visible');
+    document.getElementById('preview-content').style.marginRight='';
+    document.getElementById('preview-doc-header').style.marginRight='';
+    document.getElementById('preview-doc-footer').style.marginRight='';
+  }
+
+  // ── Đồng bộ font size & line-height với cài đặt PDF ──
+  const prevEl=document.getElementById('preview');
+  const fsEl=document.getElementById('pdf-fontsize');
+  const lhEl=document.getElementById('pdf-lineh');
+  if(prevEl){
+    prevEl.style.fontSize=fsEl?(fsEl.value+'pt'):'12pt';
+    prevEl.style.lineHeight=lhEl?lhEl.value:'1.78';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// 9. MATH TOOLBAR
+// ═══════════════════════════════════════════════════════════
+
+// Chèn ký hiệu LaTeX vào vị trí con trỏ trong textarea
+// Nếu có đoạn chọn, tự động bọc vào tham số đầu tiên {}
+function mathIns(snippet){
+  const ta=document.getElementById('editor');
+  const s=ta.selectionStart, e=ta.selectionEnd;
+  const sel=ta.value.slice(s,e).trim();
+  const before=ta.value.slice(0,s);
+
+  // Đếm dấu $ đơn (không phải $$) trước con trỏ để biết có đang trong $...$ không
+  let dollarCount=0;
+  for(let i=0;i<before.length;i++){
+    if(before[i]==='$'){
+      if(before[i+1]==='$'){i++;} // bỏ qua $$
+      else dollarCount++;
+    }
+  }
+  const inMath=dollarCount%2===1;
+
+  const fb=snippet.indexOf('{}');
+  let insert=snippet, relCur;
+
+  if(sel){
+    if(fb>=0){
+      insert=snippet.slice(0,fb)+'{'+sel+'}'+snippet.slice(fb+2);
+      const sb=insert.indexOf('{}',fb+sel.length+2);
+      relCur=sb>=0 ? sb+1 : insert.length;
+    }else{
+      relCur=insert.length;
+    }
+  }else{
+    relCur=fb>=0 ? fb+1 : insert.length;
+  }
+
+  // Nếu đang ngoài $...$: tự bọc $ ... $
+  if(!inMath){
+    insert='$'+insert+'$';
+    relCur+=1; // bù dấu $ đầu
+  }
+
+  ta.value=ta.value.slice(0,s)+insert+ta.value.slice(e);
+  ta.focus();
+  ta.setSelectionRange(s+relCur, s+relCur);
+  updatePreview();
+}
+
+function toggleMathToolbar(){
+  const tb=document.getElementById('math-toolbar');
+  const btn=document.getElementById('btn-mtb');
+  tb.classList.toggle('open');
+  btn.classList.toggle('btn-active');
+}
+
+function buildMathToolbar(){
+  // Định nghĩa nhóm & nút
+  const GROUPS=[
+    {lbl:'Cấu trúc', items:[
+      {la:'\\frac{a}{b}',    sn:'\\frac{}{}',        tt:'Phân số \\frac{}{}'},
+      {la:'\\sqrt{x}',       sn:'\\sqrt{}',           tt:'Căn bậc hai \\sqrt{}'},
+      {la:'\\sqrt[n]{x}',    sn:'\\sqrt[n]{}',        tt:'Căn bậc n \\sqrt[n]{}'},
+      {la:'a^{n}',           sn:'^{}',                tt:'Lũy thừa (mũ) ^{}'},
+      {la:'a_{n}',           sn:'_{}',                tt:'Chỉ số dưới _{}'},
+      {la:'a_i^n',           sn:'_{}^{}',             tt:'Vừa mũ vừa chỉ số _{}^{}'},
+      {la:'\\binom{n}{k}',   sn:'\\binom{}{}',        tt:'Tổ hợp C(n,k)'},
+    ]},
+    {lbl:'Toán tử', items:[
+      {la:'\\sum',           sn:'\\sum_{i=1}^{n}',   tt:'Tổng Σ – chèn \\sum_{i=1}^{n}'},
+      {la:'\\int',           sn:'\\int_{}^{}',        tt:'Tích phân ∫ – chèn \\int_{}^{}'},
+      {la:'\\iint',          sn:'\\iint_{}^{}',       tt:'Tích phân kép ∬'},
+      {la:'\\prod',          sn:'\\prod_{i=1}^{n}',  tt:'Tích Π – chèn \\prod_{i=1}^{n}'},
+      {la:'\\lim_{x\\to a}', sn:'\\lim_{x\\to}',     tt:'Giới hạn lim'},
+      {la:'\\lim_{n\\to\\infty}',sn:'\\lim_{n\\to\\infty}', tt:'Giới hạn khi n→∞'},
+      {la:'\\frac{d}{dx}',   sn:'\\frac{d}{dx}',     tt:'Đạo hàm d/dx'},
+      {la:'\\frac{\\partial}{\\partial x}',sn:'\\frac{\\partial}{\\partial x}',tt:'Đạo hàm riêng ∂/∂x'},
+    ]},
+    {lbl:'Ký hiệu', items:[
+      {la:'\\infty',         sn:'\\infty',            tt:'Vô cực ∞'},
+      {la:'\\pm',            sn:'\\pm',               tt:'Cộng trừ ±'},
+      {la:'\\leq',           sn:'\\leq',              tt:'Nhỏ hơn hoặc bằng ≤'},
+      {la:'\\geq',           sn:'\\geq',              tt:'Lớn hơn hoặc bằng ≥'},
+      {la:'\\neq',           sn:'\\neq',              tt:'Khác ≠'},
+      {la:'\\approx',        sn:'\\approx',           tt:'Xấp xỉ ≈'},
+      {la:'\\equiv',         sn:'\\equiv',            tt:'Tương đương ≡'},
+      {la:'\\times',         sn:'\\times',            tt:'Nhân ×'},
+      {la:'\\div',           sn:'\\div',              tt:'Chia ÷'},
+      {la:'\\to',            sn:'\\to',               tt:'Mũi tên →'},
+      {la:'\\Rightarrow',    sn:'\\Rightarrow',       tt:'Suy ra ⇒'},
+      {la:'\\Leftrightarrow',sn:'\\Leftrightarrow',   tt:'Tương đương ⟺'},
+      {la:'\\in',            sn:'\\in',               tt:'Thuộc ∈'},
+      {la:'\\notin',         sn:'\\notin',            tt:'Không thuộc ∉'},
+      {la:'\\subset',        sn:'\\subset',           tt:'Con của ⊂'},
+      {la:'\\cup',           sn:'\\cup',              tt:'Hợp ∪'},
+      {la:'\\cap',           sn:'\\cap',              tt:'Giao ∩'},
+    ]},
+    {lbl:'Hàm số', items:[
+      {la:'\\sin',           sn:'\\sin',              tt:'sin'},
+      {la:'\\cos',           sn:'\\cos',              tt:'cos'},
+      {la:'\\tan',           sn:'\\tan',              tt:'tan'},
+      {la:'\\cot',           sn:'\\cot',              tt:'cot'},
+      {la:'\\arcsin',        sn:'\\arcsin',           tt:'arcsin'},
+      {la:'\\arccos',        sn:'\\arccos',           tt:'arccos'},
+      {la:'\\arctan',        sn:'\\arctan',           tt:'arctan'},
+      {la:'\\ln',            sn:'\\ln',               tt:'ln (logarit tự nhiên)'},
+      {la:'\\log',           sn:'\\log',              tt:'log'},
+      {la:'\\log_n',         sn:'\\log_{}',           tt:'log cơ số n – \\log_{}'},
+      {la:'\\exp',           sn:'\\exp',              tt:'exp'},
+    ]},
+    {lbl:'Vecto & Dấu', items:[
+      {la:'\\vec{a}',                    sn:'\\vec{}',                    tt:'Vecto mũi tên ngắn \\vec{a}'},
+      {la:'\\overrightarrow{AB}',        sn:'\\overrightarrow{}',         tt:'Vecto mũi tên dài → \\overrightarrow{AB}'},
+      {la:'\\overleftarrow{AB}',         sn:'\\overleftarrow{}',          tt:'Vecto mũi tên dài ← \\overleftarrow{AB}'},
+      {la:'\\overleftrightarrow{AB}',    sn:'\\overleftrightarrow{}',     tt:'Vecto hai chiều \\overleftrightarrow{AB}'},
+      {la:'\\overline{AB}',             sn:'\\overline{}',               tt:'Đoạn thẳng (gạch trên) \\overline{AB}'},
+      {la:'\\underline{AB}',            sn:'\\underline{}',              tt:'Gạch dưới \\underline{AB}'},
+      {la:'\\widehat{ABC}',             sn:'\\widehat{}',                tt:'Mũ rộng / Góc \\widehat{ABC}'},
+      {la:'\\hat{a}',                   sn:'\\hat{}',                    tt:'Mũ nhỏ \\hat{a}'},
+      {la:'\\widetilde{ab}',            sn:'\\widetilde{}',              tt:'Dấu ngã rộng \\widetilde{ab}'},
+      {la:'\\tilde{a}',                 sn:'\\tilde{}',                  tt:'Dấu ngã nhỏ \\tilde{a}'},
+      {la:'\\dot{x}',                   sn:'\\dot{}',                    tt:'Dấu chấm trên (đạo hàm) \\dot{x}'},
+      {la:'\\ddot{x}',                  sn:'\\ddot{}',                   tt:'Hai chấm trên \\ddot{x}'},
+      {la:'\\overbrace{a+b+c}^{n}',     sn:'\\overbrace{}^{}',           tt:'Dấu ngoặc trên \\overbrace{}^{}'},
+      {la:'\\underbrace{a+b+c}_{n}',    sn:'\\underbrace{}_{} ',         tt:'Dấu ngoặc dưới \\underbrace{}_{} '},
+      {la:'\\mathbf{a}',                sn:'\\mathbf{}',                 tt:'Chữ đậm (vecto) \\mathbf{a}'},
+      {la:'|\\vec{a}|',                 sn:'|\\vec{}|',                  tt:'Độ dài vecto |\\vec{a}|'},
+      {la:'\\vec{a}\\cdot\\vec{b}',     sn:'\\vec{}\\cdot\\vec{}',       tt:'Tích vô hướng \\vec{a}·\\vec{b}'},
+      {la:'\\vec{0}',                   sn:'\\vec{0}',                   tt:'Vecto không \\vec{0}'},
+    ]},
+    {lbl:'Hy Lạp', items:[
+      {la:'\\alpha',  sn:'\\alpha',  tt:'α alpha'},
+      {la:'\\beta',   sn:'\\beta',   tt:'β beta'},
+      {la:'\\gamma',  sn:'\\gamma',  tt:'γ gamma'},
+      {la:'\\delta',  sn:'\\delta',  tt:'δ delta'},
+      {la:'\\epsilon',sn:'\\epsilon',tt:'ε epsilon'},
+      {la:'\\theta',  sn:'\\theta',  tt:'θ theta'},
+      {la:'\\lambda', sn:'\\lambda', tt:'λ lambda'},
+      {la:'\\mu',     sn:'\\mu',     tt:'μ mu'},
+      {la:'\\nu',     sn:'\\nu',     tt:'ν nu'},
+      {la:'\\pi',     sn:'\\pi',     tt:'π pi'},
+      {la:'\\sigma',  sn:'\\sigma',  tt:'σ sigma'},
+      {la:'\\tau',    sn:'\\tau',    tt:'τ tau'},
+      {la:'\\phi',    sn:'\\phi',    tt:'φ phi'},
+      {la:'\\omega',  sn:'\\omega',  tt:'ω omega'},
+      {la:'\\Gamma',  sn:'\\Gamma',  tt:'Γ Gamma'},
+      {la:'\\Delta',  sn:'\\Delta',  tt:'Δ Delta'},
+      {la:'\\Sigma',  sn:'\\Sigma',  tt:'Σ Sigma'},
+      {la:'\\Omega',  sn:'\\Omega',  tt:'Ω Omega'},
+      {la:'\\Pi',     sn:'\\Pi',     tt:'Π Pi'},
+    ]},
+  ];
+
+  const row=document.getElementById('mtb-row');
+  GROUPS.forEach((grp,gi)=>{
+    if(gi>0){const sep=document.createElement('div');sep.className='mtb-sep';row.appendChild(sep);}
+    const lbl=document.createElement('span');lbl.className='mtb-lbl';lbl.textContent=grp.lbl+':';row.appendChild(lbl);
+    grp.items.forEach(item=>{
+      const btn=document.createElement('button');
+      btn.className='mtb-btn';
+      btn.title=item.tt;
+      btn.onmousedown=e=>{e.preventDefault();};// giữ focus textarea
+      btn.onclick=()=>mathIns(item.sn);
+      try{
+        btn.innerHTML=katex.renderToString(item.la,{
+          displayMode:false, throwOnError:false, output:'html'
+        });
+      }catch(_){btn.textContent=item.tt;}
+      row.appendChild(btn);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// 9c. UI CONTROLS
+// ═══════════════════════════════════════════════════════════
+function setStatus(msg,type='info'){
+  const el=document.getElementById('status-msg');el.textContent=msg;el.className=type;
+}
+function toggleSettings(){
+  const panel=document.getElementById('settings-panel');
+  const btn=document.getElementById('btn-settings');
+  panel.classList.toggle('open');
+  btn.classList.toggle('btn-active');
+}
+function clearEditor(){if(confirm('Xóa toàn bộ nội dung?')){document.getElementById('editor').value='';updatePreview();}}
+
+function insertSlideBreak(){
+  const ta=document.getElementById('editor');
+  const s=ta.selectionStart, e=ta.selectionEnd, v=ta.value;
+  // Ensure === is on its own line
+  const before=v.slice(0,s), after=v.slice(e);
+  const needNlBefore=before.length&&!before.endsWith('\n');
+  const needNlAfter=after.length&&!after.startsWith('\n');
+  const ins=(needNlBefore?'\n':'')+'==='+(needNlAfter?'\n':'')+'\n';
+  ta.value=before+ins+after;
+  const cur=before.length+ins.length;
+  ta.selectionStart=ta.selectionEnd=cur;
+  ta.focus();
+  updatePreview();
+  setStatus('✅ Đã chèn ngắt slide ===','ok');
+}
+
+function setTheme(t){
+  document.body.className='theme-'+t;
+  document.querySelectorAll('.tpl-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tpl-'+t).classList.add('active');
+  updatePreview();
+}
+
+function loadTemplate(val){
+  if(!val)return;
+  document.getElementById('tpl-select').value='';
+  if(val==='math')document.getElementById('editor').value=SAMPLE_MATH;
+  else if(val==='exam45')document.getElementById('editor').value=SAMPLE_EXAM45;
+  else if(val==='exam90')document.getElementById('editor').value=SAMPLE_EXAM90;
+  else if(val==='mcq3col')document.getElementById('editor').value=SAMPLE_MCQ3COL;
+  else if(val==='pptslide')document.getElementById('editor').value=SAMPLE_PPT;
+  else if(val==='chuyende')document.getElementById('editor').value=SAMPLE_CHUYENDE;
+  updatePreview();
+}
+
+// Divider drag
+const divider=document.getElementById('divider');
+const mainEl=document.getElementById('main');
+const lp=document.getElementById('left-panel');
+const rp=document.getElementById('right-panel');
+let dragging=false;
+divider.addEventListener('mousedown',e=>{dragging=true;e.preventDefault();});
+document.addEventListener('mouseup',()=>dragging=false);
+document.addEventListener('mousemove',e=>{
+  if(!dragging)return;
+  const rect=mainEl.getBoundingClientRect();
+  const x=Math.max(200,Math.min(e.clientX-rect.left,rect.width-200));
+  lp.style.flex='none';lp.style.width=x+'px';
+  rp.style.flex='none';rp.style.width=(rect.width-5-x)+'px';
+});
+
+// ═══════════════════════════════════════════════════════════
+// 10. SAMPLE CONTENT
+// ═══════════════════════════════════════════════════════════
+const SAMPLE_MATH=`# Toán học với Markdown → Word
+
+## 1. Đại số
+
+Phương trình bậc hai $ax^2 + bx + c = 0$ có nghiệm:
+
+$$x_{1,2} = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$
+
+Hệ thức Viète: $x_1 + x_2 = -\\dfrac{b}{a}$ và $x_1 \\cdot x_2 = \\dfrac{c}{a}$
+
+## 2. Giải tích
+
+Đạo hàm theo định nghĩa:
+
+$$f'(x) = \\lim_{h \\to 0} \\frac{f(x+h)-f(x)}{h}$$
+
+Khai triển Taylor: $f(x) = \\sum_{n=0}^{\\infty} \\dfrac{f^{(n)}(a)}{n!}(x-a)^n$
+
+## 3. Tích phân
+
+$$\\int_a^b f(x)\\,dx = F(b) - F(a)$$
+
+$$\\int \\frac{1}{\\sqrt{1-x^2}}\\,dx = \\arcsin x + C$$
+
+## 4. Ma trận
+
+$$A = \\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}, \\quad \\det(A) = ad - bc$$
+
+## 5. Hàm phân nhánh
+
+$$f(x) = \\begin{cases} x^2 & \\text{nếu } x \\geq 0 \\\\ -x & \\text{nếu } x < 0 \\end{cases}$$
+
+## 6. Xác suất & Thống kê
+
+Công thức Bayes: $P(A|B) = \\dfrac{P(B|A)\\cdot P(A)}{P(B)}$
+
+Phân phối chuẩn: $f(x) = \\dfrac{1}{\\sigma\\sqrt{2\\pi}}\\,e^{-\\frac{(x-\\mu)^2}{2\\sigma^2}}$
+
+## 7. Bảng công thức
+
+| Hàm | Đạo hàm | Nguyên hàm |
+|-----|---------|-----------|
+| $x^n$ | $nx^{n-1}$ | $\\dfrac{x^{n+1}}{n+1}+C$ |
+| $\\sin x$ | $\\cos x$ | $-\\cos x+C$ |
+| $e^x$ | $e^x$ | $e^x+C$ |
+| $\\ln x$ | $\\dfrac{1}{x}$ | $x\\ln x - x+C$ |`;
+
+const SAMPLE_EXAM45=`## TRƯỜNG THPT .................. – TỔ TOÁN
+## ĐỀ KIỂM TRA GIỮA HỌC KỲ I – NĂM HỌC 2025–2026
+### Môn: Toán 12 | Thời gian: 45 phút | Không dùng tài liệu
+
+**Họ tên:** ................................................ **Lớp:** ......... **SBD:** .........
+
+**Câu 1** *(2đ)*. Tính đạo hàm:
+
+**a)** $y = x^4 - 5x^2 + 3x - 7$ &ensp;&ensp;&ensp;&ensp; **b)** $y = \\dfrac{2x-1}{x+3}$ &ensp;&ensp;&ensp;&ensp; **c)** $y = \\sin^2 x \\cdot e^x$
+
+**Câu 2** *(2đ)*. Tính nguyên hàm:
+
+**a)** $\\displaystyle\\int \\left(4x^3 - 6x + \\frac{2}{x^2}\\right)dx$ &ensp;&ensp;&ensp;&ensp; **b)** $\\displaystyle\\int x\\sqrt{x^2+1}\\,dx$
+
+**Câu 3** *(2đ)*. Tính tích phân: $\\displaystyle I = \\int_0^{\\pi/2} \\sin x\\cdot\\cos^2 x\\,dx$
+
+**Câu 4** *(2đ)*. Giải bất phương trình: $\\log_3(x-1) + \\log_3(x+1) > 1$
+
+**Câu 5** *(2đ)*. Cho $f(x) = x^3 - 3x^2 + 4$.
+
+**a)** Tìm các khoảng đơn điệu của hàm số.
+
+**b)** Tìm cực trị. Viết phương trình tiếp tuyến tại điểm cực đại.
+
+*Cán bộ coi thi không giải thích thêm. — Hết —*`;
+
+const SAMPLE_EXAM90=`## TRƯỜNG THPT .................. – TỔ TOÁN
+## ĐỀ THI HỌC KỲ I – NĂM HỌC 2025–2026
+### Môn: Toán 12 | Thời gian: 90 phút | Không dùng tài liệu
+
+**Họ tên:** ................................................ **Lớp:** ......... **SBD:** .........
+
+## I. TRẮC NGHIỆM (4,0 điểm – 8 câu, mỗi câu 0,5 điểm)
+
+:::2
+**Câu 1.** Đạo hàm của $y = \\sqrt{3x+1}$ là:
+
+**A.** $\\dfrac{3}{2\\sqrt{3x+1}}$ &ensp; **B.** $\\dfrac{1}{2\\sqrt{3x+1}}$ &ensp; **C.** $\\dfrac{3}{\\sqrt{3x+1}}$ &ensp; **D.** $-\\dfrac{3}{2\\sqrt{3x+1}}$
+
+**Câu 2.** $\\displaystyle\\int e^{2x}\\,dx$ bằng:
+
+**A.** $e^{2x}+C$ &ensp; **B.** $\\dfrac{e^{2x}}{2}+C$ &ensp; **C.** $2e^{2x}+C$ &ensp; **D.** $e^{2x+1}+C$
+
+**Câu 3.** Diện tích giới hạn bởi $y=x^2$ và $y=x$ bằng:
+
+**A.** $\\dfrac{1}{6}$ &ensp; **B.** $\\dfrac{1}{3}$ &ensp; **C.** $\\dfrac{1}{2}$ &ensp; **D.** $\\dfrac{2}{3}$
+
+**Câu 4.** Hàm $y = x^3 - 3x$ đồng biến trên:
+
+**A.** $(-\\infty;-1)$ &ensp; **B.** $(-1;1)$ &ensp; **C.** $(1;+\\infty)$ &ensp; **D.** $(-\\infty;-1)\\cup(1;+\\infty)$
+
+**Câu 5.** $\\displaystyle\\int_0^1 x^2\\,dx$ bằng:
+
+**A.** $\\dfrac{1}{4}$ &ensp; **B.** $\\dfrac{1}{3}$ &ensp; **C.** $\\dfrac{1}{2}$ &ensp; **D.** $1$
+
+**Câu 6.** Nghiệm của $\\log_2 x = 3$ là:
+
+**A.** $x=6$ &ensp; **B.** $x=8$ &ensp; **C.** $x=9$ &ensp; **D.** $x=\\dfrac{3}{2}$
+
+**Câu 7.** Đạo hàm của $y = e^x$ là:
+
+**A.** $e^{x-1}$ &ensp; **B.** $xe^{x-1}$ &ensp; **C.** $e^x$ &ensp; **D.** $\\dfrac{e^x}{x}$
+
+**Câu 8.** $\\displaystyle\\int \\cos x\\,dx$ bằng:
+
+**A.** $-\\sin x+C$ &ensp; **B.** $\\sin x+C$ &ensp; **C.** $-\\cos x+C$ &ensp; **D.** $\\tan x+C$
+:::
+
+## II. TỰ LUẬN (6,0 điểm)
+
+**Câu 9** *(2đ)*. Tính đạo hàm:
+
+**a)** $y = (2x^2-3x+1)e^x$ &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **b)** $y = \\ln\\!\\left(\\dfrac{x+1}{x-1}\\right)$, với $x>1$
+
+**Câu 10** *(2đ)*. Tính tích phân:
+
+**a)** $\\displaystyle I_1 = \\int_1^2 \\frac{x^2+2}{x}\\,dx$ &ensp;&ensp;&ensp;&ensp;&ensp;&ensp; **b)** $\\displaystyle I_2 = \\int_0^{\\pi} x\\sin x\\,dx$
+
+**Câu 11** *(1,5đ)*. Khảo sát và vẽ đồ thị $y = x^3 - 3x + 2$. Tính diện tích hình phẳng giới hạn bởi đồ thị với trục hoành.
+
+**Câu 12** *(0,5đ)*. Chứng minh $x^3 - 3x - 1 = 0$ có đúng ba nghiệm thực phân biệt.
+
+*Cán bộ coi thi không giải thích thêm. — Hết —*`;
+
+const SAMPLE_MCQ3COL=`## TRƯỜNG THPT .................. – TỔ TOÁN
+## ĐỀ KIỂM TRA TRẮC NGHIỆM – NĂM HỌC 2025–2026
+### Môn: Toán 10 | Thời gian: 45 phút | Không dùng tài liệu
+
+**Họ tên:** ................................................ **Lớp:** ......... **SBD:** .........
+
+## I. TRẮC NGHIỆM (10,0 điểm – 40 câu)
+
+*Mỗi câu chỉ có một đáp án đúng. Khoanh tròn vào chữ cái trước đáp án đúng.*
+
+:::3
+**Câu 1.** $2^3 = ?$ &ensp; **A.** 6 &ensp; **B.** 8 &ensp; **C.** 9 &ensp; **D.** 12
+
+**Câu 2.** Căn bậc hai của 144 là: &ensp; **A.** 11 &ensp; **B.** 12 &ensp; **C.** 13 &ensp; **D.** 14
+
+**Câu 3.** $\\log_{10} 1000 = ?$ &ensp; **A.** 2 &ensp; **B.** 3 &ensp; **C.** 4 &ensp; **D.** 10
+
+**Câu 4.** Tập nghiệm của $x^2 = 9$: &ensp; **A.** $\\{3\\}$ &ensp; **B.** $\\{-3\\}$ &ensp; **C.** $\\{\\pm3\\}$ &ensp; **D.** $\\emptyset$
+
+**Câu 5.** $\\sin 30° = ?$ &ensp; **A.** $\\dfrac{\\sqrt{3}}{2}$ &ensp; **B.** $\\dfrac{1}{2}$ &ensp; **C.** $\\dfrac{\\sqrt{2}}{2}$ &ensp; **D.** $1$
+
+**Câu 6.** $\\cos 60° = ?$ &ensp; **A.** $\\dfrac{\\sqrt{3}}{2}$ &ensp; **B.** $\\dfrac{1}{2}$ &ensp; **C.** $0$ &ensp; **D.** $1$
+
+**Câu 7.** Chu vi hình tròn bán kính $r$: &ensp; **A.** $\\pi r$ &ensp; **B.** $2\\pi r$ &ensp; **C.** $\\pi r^2$ &ensp; **D.** $2r$
+
+**Câu 8.** $5! = ?$ &ensp; **A.** 25 &ensp; **B.** 60 &ensp; **C.** 120 &ensp; **D.** 125
+
+**Câu 9.** Điều kiện $\\sqrt{2x-1}$ xác định: &ensp; **A.** $x>\\dfrac{1}{2}$ &ensp; **B.** $x\\geq\\dfrac{1}{2}$ &ensp; **C.** $x<\\dfrac{1}{2}$ &ensp; **D.** $x\\in\\mathbb{R}$
+
+**Câu 10.** ƯCLN(12, 18) = ? &ensp; **A.** 3 &ensp; **B.** 6 &ensp; **C.** 9 &ensp; **D.** 36
+
+**Câu 11.** Phương trình $2x - 6 = 0$ có nghiệm: &ensp; **A.** $x=2$ &ensp; **B.** $x=3$ &ensp; **C.** $x=6$ &ensp; **D.** $x=-3$
+
+**Câu 12.** Tổng các góc trong tam giác: &ensp; **A.** $90°$ &ensp; **B.** $180°$ &ensp; **C.** $270°$ &ensp; **D.** $360°$
+:::`;
+
+const SAMPLE_PPT=`# Hàm số bậc hai – $y = ax^2 + bx + c$
+
+## Định nghĩa
+
+Hàm số bậc hai có dạng $y = ax^2 + bx + c$ trong đó $a \\neq 0$.
+
+- **Đỉnh parabol:** $x_0 = -\\dfrac{b}{2a}$, &ensp; $y_0 = -\\dfrac{\\Delta}{4a}$
+- **Trục đối xứng:** $x = -\\dfrac{b}{2a}$
+- Nếu $a > 0$: parabol **mở lên**, đỉnh là **điểm cực tiểu**
+- Nếu $a < 0$: parabol **mở xuống**, đỉnh là **điểm cực đại**
+
+## Biệt thức Delta
+
+$$\\Delta = b^2 - 4ac$$
+
+Phương trình $ax^2 + bx + c = 0$ có:
+
+- $\\Delta > 0$: **hai nghiệm phân biệt** $x_{1,2} = \\dfrac{-b \\pm \\sqrt{\\Delta}}{2a}$
+- $\\Delta = 0$: **nghiệm kép** $x = -\\dfrac{b}{2a}$
+- $\\Delta < 0$: **vô nghiệm thực**
+
+## Hệ thức Viète
+
+Nếu $x_1, x_2$ là nghiệm của $ax^2+bx+c=0$ thì:
+
+$$x_1 + x_2 = -\\frac{b}{a} \\qquad x_1 \\cdot x_2 = \\frac{c}{a}$$
+
+- **Ứng dụng:** Tính $x_1^2+x_2^2 = (x_1+x_2)^2 - 2x_1x_2$
+
+# Ứng dụng thực tế
+
+## Bài toán tối ưu
+
+Một vật được ném lên từ mặt đất với vận tốc đầu $v_0$, độ cao theo thời gian:
+
+$$h(t) = v_0 t - \\frac{1}{2}g t^2$$
+
+Thời gian đạt độ cao tối đa: $t^* = \\dfrac{v_0}{g}$
+
+Độ cao tối đa: $h_{max} = \\dfrac{v_0^2}{2g}$
+
+## Ví dụ minh họa
+
+**Cho** $y = 2x^2 - 8x + 6$. Tìm đỉnh và khoảng đồng biến/nghịch biến.
+
+### Lời giải
+
+- $a = 2 > 0$ → parabol mở lên
+- Đỉnh: $x_0 = \\dfrac{8}{4} = 2$, &ensp; $y_0 = 2(4) - 16 + 6 = -2$
+- Đỉnh $I(2;\\,-2)$
+- **Nghịch biến** trên $(-\\infty;\\,2)$, **đồng biến** trên $(2;\\,+\\infty)$
+
+## Tóm tắt công thức
+
+| Đại lượng | Công thức |
+|---|---|
+| Đỉnh $x$ | $-b/(2a)$ |
+| Biệt thức | $b^2-4ac$ |
+| Nghiệm | $(-b±√Δ)/(2a)$ |
+| Tổng nghiệm | $-b/a$ |
+| Tích nghiệm | $c/a$ |
+`;
+
+// ═══════════════════════════════════════════════════════════
+// 11. TRỘN ĐỀ TỰ ĐỘNG
+// ═══════════════════════════════════════════════════════════
+
+/* ── Modal helpers ── */
+function openTronDeModal(){
+  document.getElementById('tronde-overlay').classList.add('open');
+  // Prefill school from settings panel if available
+  const schoolEl=document.getElementById('hdr-main');
+  const tdSchool=document.getElementById('td-school');
+  if(schoolEl&&schoolEl.value&&!tdSchool.value) tdSchool.value=schoolEl.value;
+}
+function closeTronDeModal(){
+  document.getElementById('tronde-overlay').classList.remove('open');
+}
+// Close on backdrop click
+document.getElementById('tronde-overlay').addEventListener('click',function(e){
+  if(e.target===this)closeTronDeModal();
+});
+
+/* ── Question bank parser ──
+   Accepts blocks separated by blank lines.
+   Each block:
+     Câu N. [stem…]          (optional label)
+     A. / A) / A: [option]
+     B. ...
+     Đáp án: X  (or ĐÁP ÁN: X, Answer: X)
+*/
+function parseQuestionBank(text){
+  const questions=[];
+  // Normalise line endings
+  const blocks=text.replace(/\r\n/g,'\n').trim().split(/\n{2,}/);
+  for(const block of blocks){
+    const lines=block.trim().split('\n').map(l=>l.trim()).filter(l=>l);
+    if(!lines.length)continue;
+    // First non-option line = stem (strip "Câu N." prefix)
+    let stem='', options=[], correct='A';
+    let inOptions=false;
+    for(const line of lines){
+      // Answer key line
+      const ansM=line.match(/^(?:Đáp\s*án|ĐÁP\s*ÁN|Answer)\s*[:=]\s*([A-D])/i);
+      if(ansM){correct=ansM[1].toUpperCase();continue;}
+      // Option line: A. / A) / A: followed by text
+      const optM=line.match(/^([A-D])[.):\s]\s*(.*)/i);
+      if(optM){
+        inOptions=true;
+        options.push({letter:optM[1].toUpperCase(), text:optM[2].trim()});
+        continue;
+      }
+      // Stem continuation or first stem line
+      if(!inOptions){
+        const stemLine=line.replace(/^Câu\s+\d+\s*[:.]\s*/i,'').trim();
+        stem=stem?stem+' '+stemLine:stemLine;
+      }
+    }
+    // Need at least 2 options and a non-empty stem
+    if(stem&&options.length>=2){
+      // Pad to 4 options if needed (rare edge case)
+      while(options.length<4)options.push({letter:String.fromCharCode(65+options.length),text:'—'});
+      options=options.slice(0,4); // cap at 4
+      questions.push({stem,options,correct,originalIndex:questions.length});
+    }
+  }
+  return questions;
+}
+
+/* ── Fisher-Yates shuffle (pure, returns new array) ── */
+function fisherYates(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+/* ── Create one exam variant ──
+   Returns array of question objects with variant-specific numbering.
+   If shuffleOpts=true, answer options are also shuffled and correct letter updated.
+*/
+function createVariant(questions, shuffleOpts){
+  const shuffled=fisherYates(questions);
+  return shuffled.map((q,vi)=>{
+    if(!shuffleOpts){
+      return{...q, variantNum:vi+1};
+    }
+    // Shuffle options and remap correct answer
+    const newOpts=fisherYates(q.options).map((o,i)=>({
+      letter:String.fromCharCode(65+i),
+      text:o.text,
+      _origLetter:o.letter
+    }));
+    // Find which new letter holds the original correct answer
+    const origCorrectText=q.options.find(o=>o.letter===q.correct)?.text;
+    const newCorrect=newOpts.find(o=>o.text===origCorrectText)?.letter||'A';
+    return{...q, options:newOpts, correct:newCorrect, variantNum:vi+1};
+  });
+}
+
+/* ── Convert variant questions to markdown string for md2docxBody ── */
+function variantToMarkdown(variantQs, settings, code){
+  const lines=[];
+  const title=settings.title||'ĐỀ KIỂM TRA';
+  const subject=settings.subject;
+  const time=settings.time;
+  const grade=settings.grade;
+
+  // Exam header block (will be rendered as paragraphs)
+  lines.push(`**${title}**`);
+  const meta=[];
+  if(subject)meta.push(`**Môn:** ${subject}`);
+  if(grade) meta.push(`**Lớp:** ${grade}`);
+  if(time)  meta.push(`**Thời gian:** ${time} phút`);
+  if(meta.length) lines.push(meta.join(' &ensp; '));
+  lines.push(`**Mã đề: ${code}** &ensp; *(${variantQs.length} câu trắc nghiệm)*`);
+  lines.push('');
+  lines.push('---');
+  lines.push('');
+
+  variantQs.forEach((q,i)=>{
+    // Question stem — preserve math inline
+    lines.push(`**Câu ${i+1}.** ${q.stem}`);
+    lines.push('');
+    // Options: 2 per line (A+B, C+D) to save paper
+    const [oA,oB,oC,oD]=q.options;
+    lines.push(`&ensp;**A.** ${oA.text} &ensp;&ensp;**B.** ${oB.text}`);
+    lines.push(`&ensp;**C.** ${oC.text} &ensp;&ensp;**D.** ${oD.text}`);
+    lines.push('');
+  });
+
+  return lines.join('\n');
+}
+
+/* ── Build answer-key markdown ── */
+function buildAnswerKeyMd(variants, originalCount){
+  const lines=[];
+  lines.push('# BẢNG ĐÁP ÁN');
+  lines.push('');
+
+  // Summary table: original question# vs answer per variant
+  const codes=variants.map(v=>v.code);
+  lines.push('| Câu gốc | '+codes.map(c=>`Mã ${c}`).join(' | ')+' |');
+  lines.push('|:---:|'+codes.map(()=>':---:').join('|')+'|');
+
+  for(let i=0;i<originalCount;i++){
+    const row=variants.map(v=>{
+      const vq=v.questions.find(q=>q.originalIndex===i);
+      return vq?vq.correct:'—';
+    });
+    lines.push(`| ${i+1} | ${row.join(' | ')} |`);
+  }
+  lines.push('');
+  lines.push('---');
+  lines.push('');
+
+  // Per-variant detail table
+  variants.forEach(v=>{
+    lines.push(`## Mã đề: ${v.code}`);
+    lines.push('');
+    lines.push('| Câu | Câu gốc | Đáp án |');
+    lines.push('|:---:|:---:|:---:|');
+    v.questions.forEach((q,i)=>{
+      lines.push(`| ${i+1} | ${q.originalIndex+1} | **${q.correct}** |`);
+    });
+    lines.push('');
+  });
+
+  return lines.join('\n');
+}
+
+/* ── Analyze button ── */
+function analyzeTronDe(){
+  const text=document.getElementById('qbank-input').value;
+  const qs=parseQuestionBank(text);
+  const stats=document.getElementById('qbank-stats');
+  const btn=document.getElementById('td-btn-export');
+  if(!qs.length){
+    stats.innerHTML='<span style="color:#f85149">⚠ Không tìm thấy câu hỏi hợp lệ. Kiểm tra định dạng.</span>';
+    btn.disabled=true;
+    return;
+  }
+  // Count how many have Đáp án declared
+  const withAns=qs.filter(q=>q.correct).length;
+  stats.innerHTML=`<span style="color:#3fb950">✅ ${qs.length} câu hỏi hợp lệ</span>`+
+    (withAns<qs.length?` &ensp;<span style="color:#e3b341">⚠ ${qs.length-withAns} câu chưa có đáp án (mặc định A)</span>`:'');
+  btn.disabled=false;
+  document.getElementById('td-progress').textContent='Sẵn sàng tạo đề!';
+}
+
+/* ── Main export function ── */
+async function exportTronDe(){
+  const text=document.getElementById('qbank-input').value;
+  const questions=parseQuestionBank(text);
+  if(!questions.length){
+    document.getElementById('td-progress').innerHTML='<span style="color:#f85149">Không có câu hỏi — bấm Phân tích trước</span>';
+    return;
+  }
+
+  const btn=document.getElementById('td-btn-export');
+  const prog=document.getElementById('td-progress');
+  btn.disabled=true;
+
+  // Gather settings
+  const nVars=parseInt(document.querySelector('input[name="td-nvars"]:checked').value)||4;
+  const codeType=document.querySelector('input[name="td-codetype"]:checked').value;
+  const shuffleOpts=document.getElementById('td-shuffle-opts').checked;
+  const inclKey=document.getElementById('td-incl-key').checked;
+  const settings={
+    title:document.getElementById('td-title').value.trim()||'ĐỀ KIỂM TRA',
+    subject:document.getElementById('td-subject').value.trim(),
+    time:document.getElementById('td-time').value.trim(),
+    grade:document.getElementById('td-grade').value.trim(),
+    school:document.getElementById('td-school').value.trim(),
+  };
+
+  // Build variant code list
+  const alphaCodes=['A','B','C','D','E','F'];
+  const numCodes=['101','102','103','104','105','106'];
+  const codes=(codeType==='num'?numCodes:alphaCodes).slice(0,nVars);
+
+  // Create variants
+  const variants=codes.map(code=>{
+    const qs=createVariant(questions, shuffleOpts);
+    return{code, questions:qs};
+  });
+
+  // Build Word settings (use current app settings where applicable)
+  const s=getSettings();
+  const wordSettings={
+    ...s,
+    hdrMain:settings.school||s.hdrMain,
+    hdrSub:'',
+    answerCol:''
+  };
+  const h1Hex=getCssHex('h1-hex','1F3864');
+  const h2Hex=getCssHex('h2-hex','2E74B5');
+  const h3Hex=getCssHex('h3-hex','5B9BD5');
+  const accentHex=getCssHex('accent-hex','0550AE');
+  const thHex=getCssHex('th-hex','DDEEFF');
+
+  /* Generate one .docx blob for given markdown + settings */
+  async function makeDocxBlob(md, docSettings){
+    const bodyXml=md2docxBody(md);
+    const useHdr=!!(docSettings.hdrMain||docSettings.hdrSub);
+    const hdrRef=useHdr?`<w:headerReference w:type="default" r:id="rId4"/>`:'';
+    const docXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
+  xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+  xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+<w:body>${bodyXml}
+<w:sectPr>
+  ${hdrRef}
+  <w:pgSz w:w="12240" w:h="15840"/>
+  <w:pgMar w:top="1080" w:right="1080" w:bottom="1080" w:left="1260" w:header="720" w:footer="720" w:gutter="0"/>
+</w:sectPr>
+</w:body>
+</w:document>`;
+
+    let relsEntries=`<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/>
+  <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>`;
+    if(useHdr)relsEntries+=`\n  <Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header1.xml"/>`;
+
+    const ctOverrides=`<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+  <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
+  <Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/>
+  <Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>`+
+    (useHdr?`\n  <Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/>`: '');
+
+    const zip=new JSZip();
+    zip.file('[Content_Types].xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">\n  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>\n  <Default Extension="xml" ContentType="application/xml"/>\n  ${ctOverrides}\n</Types>`);
+    zip.file('_rels/.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>\n</Relationships>`);
+    zip.file('word/document.xml',docXml);
+    zip.file('word/styles.xml',buildStylesXml(h1Hex,h2Hex,h3Hex,accentHex,thHex));
+    zip.file('word/settings.xml',settingsXml());
+    zip.file('word/numbering.xml',numberingXml());
+    zip.file('word/_rels/document.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n  ${relsEntries}\n</Relationships>`);
+    if(useHdr)zip.file('word/header1.xml',buildHeaderXml(docSettings));
+    return await zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+  }
+
+  try{
+    const masterZip=new JSZip();
+
+    for(let i=0;i<variants.length;i++){
+      const v=variants[i];
+      prog.textContent=`Đang tạo mã đề ${v.code}… (${i+1}/${variants.length})`;
+      await new Promise(r=>setTimeout(r,20));
+      const md=variantToMarkdown(v.questions, settings, v.code);
+      const blob=await makeDocxBlob(md,{
+        ...wordSettings,
+        hdrSub:settings.subject?`Môn: ${settings.subject}${settings.grade?' – Lớp: '+settings.grade:''}`:''
+      });
+      masterZip.file(`MaDe_${v.code}.docx`,blob);
+    }
+
+    if(inclKey){
+      prog.textContent='Đang tạo file đáp án…';
+      await new Promise(r=>setTimeout(r,20));
+      const keyMd=buildAnswerKeyMd(variants, questions.length);
+      const keyBlob=await makeDocxBlob(keyMd,{...wordSettings,hdrMain:settings.school||'',hdrSub:'BẢNG ĐÁP ÁN – LƯU HÀNH NỘI BỘ'});
+      masterZip.file('DapAn.docx',keyBlob);
+    }
+
+    prog.textContent='Đang nén ZIP…';
+    await new Promise(r=>setTimeout(r,20));
+    const zipBlob=await masterZip.generateAsync({type:'blob'});
+    const examTitle=(settings.title||'TronDe').replace(/[^a-zA-Z0-9À-ỹ _-]/g,'_');
+    saveAs(zipBlob,examTitle+'_'+nVars+'MaDe.zip');
+    prog.innerHTML=`<span style="color:#3fb950">✅ Xuất thành công ${nVars} mã đề${inclKey?' + đáp án':''}!</span>`;
+    setStatus(`✅ Trộn đề: đã xuất ${nVars} mã đề thành ZIP`,'ok');
+  }catch(e){
+    prog.innerHTML=`<span style="color:#f85149">❌ Lỗi: ${e.message}</span>`;
+    console.error(e);
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+// Mẫu ngân hàng câu hỏi để demo
+const SAMPLE_CHUYENDE=`# CHUYÊN ĐỀ: VECTƠ VÀ CÁC PHÉP TOÁN VỀ VECTƠ
+
+## I. Kiến thức cần nhớ
+
+### 1. Định nghĩa vectơ
+
+**Vectơ** là một đoạn thẳng có hướng. Vectơ $\\overrightarrow{AB}$ có:
+- **Điểm đầu** $A$, **điểm cuối** $B$
+- **Độ dài (mô-đun):** $|\\overrightarrow{AB}|$
+- **Hướng:** từ $A$ đến $B$
+
+Hai vectơ **bằng nhau** khi cùng hướng và cùng độ dài: $\\overrightarrow{AB} = \\overrightarrow{CD}$
+
+**Vectơ không** $\\vec{0}$: độ dài bằng 0, hướng tùy ý.
+
+### 2. Tổng hai vectơ
+
+**Quy tắc ba điểm:** Với ba điểm bất kỳ $A, B, C$:
+$$\\overrightarrow{AB} + \\overrightarrow{BC} = \\overrightarrow{AC}$$
+
+**Quy tắc hình bình hành:** Nếu $ABCD$ là hình bình hành thì:
+$$\\overrightarrow{AB} + \\overrightarrow{AD} = \\overrightarrow{AC}$$
+
+### 3. Hiệu hai vectơ
+
+$$\\overrightarrow{AB} - \\overrightarrow{AC} = \\overrightarrow{CB}$$
+
+Hay: $\\vec{a} - \\vec{b} = \\vec{a} + (-\\vec{b})$
+
+### 4. Tích vectơ với một số
+
+Cho $\\vec{a} \\neq \\vec{0}$ và số thực $k \\neq 0$:
+- $k\\vec{a}$ cùng hướng $\\vec{a}$ nếu $k > 0$; ngược hướng nếu $k < 0$
+- $|k\\vec{a}| = |k| \\cdot |\\vec{a}|$
+
+**Điều kiện song song:** $\\vec{a} \\parallel \\vec{b} \\Leftrightarrow \\vec{b} = k\\vec{a}$ (với $k \\in \\mathbb{R},\\ k \\neq 0$)
+
+### 5. Tích vô hướng
+
+$$\\vec{a} \\cdot \\vec{b} = |\\vec{a}| \\cdot |\\vec{b}| \\cdot \\cos\\theta$$
+
+trong đó $\\theta = (\\vec{a}, \\vec{b}),\\ 0^\\circ \\leq \\theta \\leq 180^\\circ$.
+
+**Tính chất:**
+- $\\vec{a} \\perp \\vec{b} \\Leftrightarrow \\vec{a} \\cdot \\vec{b} = 0$
+- $\\vec{a} \\cdot \\vec{a} = |\\vec{a}|^2$
+- $|\\vec{a} + \\vec{b}|^2 = |\\vec{a}|^2 + 2\\vec{a}\\cdot\\vec{b} + |\\vec{b}|^2$
+
+---
+
+## II. Ví dụ mẫu
+
+### Ví dụ 1 – Phép cộng vectơ (quy tắc ba điểm)
+
+**Đề bài:** Cho hình bình hành $ABCD$. Rút gọn biểu thức:
+$$T = \\overrightarrow{AB} + \\overrightarrow{BC} + \\overrightarrow{CA}$$
+
+**Giải:**
+
+Áp dụng quy tắc ba điểm liên tiếp:
+$$T = \\overrightarrow{AB} + \\overrightarrow{BC} + \\overrightarrow{CA} = \\overrightarrow{AC} + \\overrightarrow{CA} = \\overrightarrow{AA} = \\vec{0}$$
+
+> **Nhận xét:** Tổng vectơ tạo thành đường gấp khúc kín luôn bằng $\\vec{0}$.
+
+---
+
+### Ví dụ 2 – Tích vô hướng
+
+**Đề bài:** Cho $|\\vec{a}| = 3,\\ |\\vec{b}| = 4$ và góc giữa $\\vec{a},\\vec{b}$ là $60^\\circ$. Tính $|\\vec{a} + \\vec{b}|$.
+
+**Giải:**
+
+Tính tích vô hướng:
+$$\\vec{a} \\cdot \\vec{b} = 3 \\cdot 4 \\cdot \\cos 60^\\circ = 12 \\cdot \\dfrac{1}{2} = 6$$
+
+Áp dụng công thức mô-đun:
+$$|\\vec{a} + \\vec{b}|^2 = |\\vec{a}|^2 + 2\\vec{a}\\cdot\\vec{b} + |\\vec{b}|^2 = 9 + 12 + 16 = 37$$
+
+$$\\boxed{|\\vec{a} + \\vec{b}| = \\sqrt{37}}$$
+
+---
+
+### Ví dụ 3 – Điều kiện ba điểm thẳng hàng
+
+**Đề bài:** Cho ba điểm $A, B, C$. Chứng minh $A, B, C$ thẳng hàng khi và chỉ khi $\\overrightarrow{AB} = k\\overrightarrow{AC}$ với $k \\in \\mathbb{R}$.
+
+**Giải:**
+
+$A, B, C$ thẳng hàng $\\Leftrightarrow$ $\\overrightarrow{AB}$ và $\\overrightarrow{AC}$ cùng phương $\\Leftrightarrow \\overrightarrow{AB} \\parallel \\overrightarrow{AC}$
+$\\Leftrightarrow \\overrightarrow{AB} = k\\overrightarrow{AC}$ với $k \\in \\mathbb{R}$. $\\square$
+
+---
+
+## III. Bài tập thực hành
+
+**Bài 1.** Cho hình bình hành $ABCD$ có tâm $O$. Rút gọn:
+
+a) $\\overrightarrow{OA} + \\overrightarrow{OB} + \\overrightarrow{OC} + \\overrightarrow{OD}$
+
+b) $\\overrightarrow{MA} + \\overrightarrow{MB} + \\overrightarrow{MC} + \\overrightarrow{MD}$ (với $M$ bất kỳ)
+
+:::kẻ 4 ngang
+
+**Bài 2.** Cho $\\vec{a},\\vec{b}$ thỏa $|\\vec{a}| = 5,\\ |\\vec{b}| = 7,\\ |\\vec{a} - \\vec{b}| = 8$. Tính $\\vec{a} \\cdot \\vec{b}$ và $|\\vec{a} + \\vec{b}|$.
+
+:::kẻ 5 ngang
+
+**Bài 3.** Cho tam giác $ABC$ với $M$ là trung điểm $BC$. Chứng minh:
+$$\\overrightarrow{AM} = \\dfrac{1}{2}(\\overrightarrow{AB} + \\overrightarrow{AC})$$
+
+:::kẻ 5 ngang
+
+**Bài 4.** Cho $\\overrightarrow{a} = (3; -4)$ và $\\overrightarrow{b} = (1; 2)$ trong mặt phẳng tọa độ. Tính:
+
+a) $|\\vec{a}|$, $|\\vec{b}|$
+b) $\\vec{a} \\cdot \\vec{b}$
+c) Góc $(\\vec{a}, \\vec{b})$
+
+:::kẻ 6 ngang
+
+---
+
+## IV. Lời giải bài tập
+
+> **Lời giải Bài 1**
+
+**a)** $O$ là tâm hình bình hành $ABCD$ nên $O$ là trung điểm $AC$ và $BD$:
+$$\\overrightarrow{OA} + \\overrightarrow{OC} = \\vec{0},\\quad \\overrightarrow{OB} + \\overrightarrow{OD} = \\vec{0}$$
+$$\\Rightarrow \\overrightarrow{OA} + \\overrightarrow{OB} + \\overrightarrow{OC} + \\overrightarrow{OD} = \\vec{0}$$
+
+**b)** Gọi $G$ là điểm thỏa $\\overrightarrow{MA}+\\overrightarrow{MB}+\\overrightarrow{MC}+\\overrightarrow{MD}=\\vec{0}$, tức $G = O$. Ta có:
+$$\\overrightarrow{MA}+\\overrightarrow{MB}+\\overrightarrow{MC}+\\overrightarrow{MD} = 4\\overrightarrow{MO}$$
+
+---
+
+> **Lời giải Bài 2**
+
+Từ $|\\vec{a}-\\vec{b}|^2 = |\\vec{a}|^2 - 2\\vec{a}\\cdot\\vec{b} + |\\vec{b}|^2$:
+$$64 = 25 - 2\\vec{a}\\cdot\\vec{b} + 49 \\Rightarrow \\vec{a}\\cdot\\vec{b} = 5$$
+
+$$|\\vec{a}+\\vec{b}|^2 = 25 + 10 + 49 = 84 \\Rightarrow |\\vec{a}+\\vec{b}| = 2\\sqrt{21}$$
+
+---
+
+> **Lời giải Bài 3**
+
+$M$ là trung điểm $BC$ nên $\\overrightarrow{BM} = \\overrightarrow{MC}$.
+
+$$\\overrightarrow{AM} = \\overrightarrow{AB} + \\overrightarrow{BM} = \\overrightarrow{AB} + \\dfrac{1}{2}\\overrightarrow{BC}$$
+$$= \\overrightarrow{AB} + \\dfrac{1}{2}(\\overrightarrow{AC} - \\overrightarrow{AB}) = \\dfrac{1}{2}\\overrightarrow{AB} + \\dfrac{1}{2}\\overrightarrow{AC} = \\dfrac{1}{2}(\\overrightarrow{AB}+\\overrightarrow{AC}) \\quad\\square$$
+
+---
+
+> **Lời giải Bài 4**
+
+**a)** $|\\vec{a}| = \\sqrt{3^2+(-4)^2} = \\sqrt{25} = 5$; &ensp; $|\\vec{b}| = \\sqrt{1+4} = \\sqrt{5}$
+
+**b)** $\\vec{a}\\cdot\\vec{b} = 3\\cdot1 + (-4)\\cdot2 = 3 - 8 = -5$
+
+**c)** $\\cos\\theta = \\dfrac{\\vec{a}\\cdot\\vec{b}}{|\\vec{a}||\\vec{b}|} = \\dfrac{-5}{5\\sqrt{5}} = \\dfrac{-1}{\\sqrt{5}} \\Rightarrow \\theta = \\arccos\\left(-\\dfrac{\\sqrt{5}}{5}\\right) \\approx 116{,}57^\\circ$
+`;
+
+const SAMPLE_QBANK=`Câu 1. Phương trình $x^2 - 5x + 6 = 0$ có tổng hai nghiệm bằng:
+A. $2$
+B. $3$
+C. $5$
+D. $6$
+Đáp án: C
+
+Câu 2. Đạo hàm của hàm số $f(x) = x^3 - 3x$ tại $x = 1$ bằng:
+A. $0$
+B. $-1$
+C. $1$
+D. $3$
+Đáp án: A
+
+Câu 3. Giới hạn $\\lim_{x \\to 0} \\dfrac{\\sin x}{x}$ bằng:
+A. $0$
+B. $\\infty$
+C. $1$
+D. Không tồn tại
+Đáp án: C
+
+Câu 4. Tích phân $\\int_0^1 2x\\,dx$ bằng:
+A. $0$
+B. $1$
+C. $2$
+D. $\\frac{1}{2}$
+Đáp án: B
+
+Câu 5. Số phức $z = 3 + 4i$ có mô-đun bằng:
+A. $7$
+B. $1$
+C. $5$
+D. $25$
+Đáp án: C
+
+Câu 6. Logarithm $\\log_2 8$ bằng:
+A. $2$
+B. $3$
+C. $4$
+D. $16$
+Đáp án: B
+
+Câu 7. Công thức tính diện tích hình tròn bán kính $r$ là:
+A. $2\\pi r$
+B. $\\pi r$
+C. $\\pi r^2$
+D. $2\\pi r^2$
+Đáp án: C
+
+Câu 8. Trong tam giác vuông, $\\sin 30° =$ ?
+A. $\\dfrac{\\sqrt{3}}{2}$
+B. $\\dfrac{1}{2}$
+C. $1$
+D. $\\dfrac{\\sqrt{2}}{2}$
+Đáp án: B`;
+
+// Populate sample on first open
+document.getElementById('qbank-input').value=SAMPLE_QBANK;
+
+// Init
+document.getElementById('editor').value=SAMPLE_MATH;
+buildMathToolbar();   // render KaTeX buttons sau khi katex.js đã load
+updatePreview();
+</script>
+</body>
+</html>
