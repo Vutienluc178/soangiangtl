@@ -1809,6 +1809,8 @@ html,body{background:#888e9a;font-family:"Times New Roman",Times,serif}
 .toolbar{position:fixed;top:0;left:0;right:0;z-index:999;background:#161f2a;padding:7px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 10px rgba(0,0,0,.6)}
 .toolbar button{padding:5px 16px;border:none;border-radius:4px;cursor:pointer;font-size:.83rem;font-weight:600}
 .btn-p{background:${acc};color:#fff}
+.btn-dl{background:#1a5c2a;color:#b8ffcc}
+.btn-dl:disabled{opacity:.6;cursor:default}
 .btn-c{background:#3a3a3a;color:#bbb}
 .toolbar .hint{color:#7ab;font-size:.75rem;flex:1;text-align:right;font-style:italic}
 @media print{.toolbar{display:none}}
@@ -1886,6 +1888,7 @@ ${themeOverrideCss}
 <body>
 <div class="toolbar">
   <button class="btn-p" onclick="window.print()">🖨 In / Lưu PDF</button>
+  <button id="btn-dl" class="btn-dl" onclick="downloadPdf()">📥 Tải PDF (màu)</button>
   <button class="btn-c" onclick="window.close()">✕ Đóng</button>
   <span class="hint">Bài giảng 16:9 · ${total} slide${th?' · Giao diện: <b>'+({midnight:'🌑 Đêm Vàng',emerald:'🍀 Ngọc Bích',purple:'🔮 Tím Hoàng Gia'}[(document.getElementById('slide-theme')||{}).value]||'Mặc định')+'</b>':''} · Khổ 297×167mm · Landscape</span>
 </div>
@@ -1894,6 +1897,8 @@ ${slidesHtml}
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"><\/script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>
 <script>
 window.addEventListener('load',function(){
   renderMathInElement(document.body,{
@@ -1905,6 +1910,24 @@ window.addEventListener('load',function(){
   });
   ${autoPrint?'setTimeout(()=>window.print(),700);':''}
 });
+async function downloadPdf(){
+  const btn=document.getElementById('btn-dl');
+  btn.disabled=true;btn.textContent='⏳ Đang xử lý…';
+  try{
+    const slides=document.querySelectorAll('.slide');
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:[297,167],compress:true});
+    for(let i=0;i<slides.length;i++){
+      btn.textContent='⏳ '+(i+1)+'/'+slides.length+'…';
+      const cv=await html2canvas(slides[i],{scale:2,useCORS:true,allowTaint:true,logging:false,backgroundColor:'#ffffff'});
+      const img=cv.toDataURL('image/jpeg',0.96);
+      if(i>0)pdf.addPage([297,167],'landscape');
+      pdf.addImage(img,'JPEG',0,0,297,167,undefined,'FAST');
+    }
+    pdf.save('bai-giang.pdf');
+  }catch(e){alert('Lỗi tạo PDF: '+e.message);}
+  btn.disabled=false;btn.textContent='📥 Tải PDF (màu)';
+}
 <\/script>
 </body></html>`;
 
@@ -2139,7 +2162,7 @@ html,body{background:#888e9a;font-family:"Times New Roman",Times,serif}
 @media print{html,body{background:white}}
 .toolbar{position:fixed;top:0;left:0;right:0;z-index:999;background:#161f2a;padding:7px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 10px rgba(0,0,0,.6)}
 .toolbar button{padding:5px 16px;border:none;border-radius:4px;cursor:pointer;font-size:.83rem;font-weight:600}
-.btn-p{background:${acc};color:#fff}.btn-c{background:#3a3a3a;color:#bbb}
+.btn-p{background:${acc};color:#fff}.btn-dl{background:#1a5c2a;color:#b8ffcc}.btn-dl:disabled{opacity:.6;cursor:default}.btn-c{background:#3a3a3a;color:#bbb}
 .toolbar .hint{color:#7ab;font-size:.75rem;flex:1;text-align:right;font-style:italic}
 @media print{.toolbar{display:none}}
 .page-wrap{padding-top:48px;display:flex;flex-direction:column;align-items:center;gap:8mm;padding-bottom:8mm}
@@ -2224,6 +2247,7 @@ ${themeOverrideCss}
 <body>
 <div class="toolbar">
   <button class="btn-p" onclick="window.print()">🖨 In / Lưu PDF</button>
+  <button id="btn-dl" class="btn-dl" onclick="downloadPdf()">📥 Tải PDF (màu)</button>
   <button class="btn-c" onclick="window.close()">✕ Đóng</button>
   <span class="hint">Trình chiếu · ${totalPages} trang · <b>>>></b> = Câu hỏi/Lời giải &nbsp;·&nbsp; <b>+++</b> = Hiện dần &nbsp;·&nbsp; 297×167mm · Landscape</span>
 </div>
@@ -2232,6 +2256,8 @@ ${slidesHtml}
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"><\/script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>
 <script>
 window.addEventListener('load',function(){
   renderMathInElement(document.body,{
@@ -2239,6 +2265,24 @@ window.addEventListener('load',function(){
     throwOnError:false,ignoredTags:['script','noscript','style','textarea','pre']
   });
 });
+async function downloadPdf(){
+  const btn=document.getElementById('btn-dl');
+  btn.disabled=true;btn.textContent='⏳ Đang xử lý…';
+  try{
+    const slides=document.querySelectorAll('.slide');
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:[297,167],compress:true});
+    for(let i=0;i<slides.length;i++){
+      btn.textContent='⏳ '+(i+1)+'/'+slides.length+'…';
+      const cv=await html2canvas(slides[i],{scale:2,useCORS:true,allowTaint:true,logging:false,backgroundColor:'#ffffff'});
+      const img=cv.toDataURL('image/jpeg',0.96);
+      if(i>0)pdf.addPage([297,167],'landscape');
+      pdf.addImage(img,'JPEG',0,0,297,167,undefined,'FAST');
+    }
+    pdf.save('trinh-chieu.pdf');
+  }catch(e){alert('Lỗi tạo PDF: '+e.message);}
+  btn.disabled=false;btn.textContent='📥 Tải PDF (màu)';
+}
 <\/script>
 </body></html>`;
 
