@@ -1555,7 +1555,7 @@ tr{page-break-inside:avoid}
   background-image:linear-gradient(90deg,transparent calc(50% - 0.5px),rgba(0,0,0,.18) calc(50% - 0.5px),rgba(0,0,0,.18) calc(50% + 0.5px),transparent calc(50% + 0.5px))}
 
 /* ── KaTeX ── */
-.katex-display{margin:${sp.gap} 0;text-align:center;page-break-inside:avoid}
+.katex-display{margin:${sp.gap} 0;text-align:center;page-break-inside:avoid;overflow:hidden!important}
 </style>
 <script>
 var cssOk=false;
@@ -1859,7 +1859,7 @@ html,body{background:#888e9a;font-family:"Times New Roman",Times,serif}
   font-size:8.5mm;line-height:1.35;color:#111;overflow:hidden
 }
 .sc-cnt .katex{font-size:1em}
-.sc-cnt .katex-display{margin:2mm 0;text-align:center;overflow-x:hidden}
+.katex-display{overflow:hidden!important}.sc-cnt .katex-display{margin:2mm 0;text-align:center}
 /* Content elements */
 .para{margin-bottom:2mm}
 .gap{height:2mm}
@@ -2170,7 +2170,7 @@ html,body{background:#888e9a;font-family:"Times New Roman",Times,serif}
 .sc-line{height:2px;background:${acc};flex-shrink:0}
 .sc-cnt{flex:1;padding:5mm 10mm 4mm 9mm;font-size:8.5mm;line-height:1.35;color:#111;overflow:hidden}
 .sc-cnt .katex{font-size:1em}
-.sc-cnt .katex-display{margin:2mm 0;text-align:center;overflow-x:hidden}
+.katex-display{overflow:hidden!important}.sc-cnt .katex-display{margin:2mm 0;text-align:center}
 .para{margin-bottom:2mm}.gap{height:2mm}
 .hr{border:none;border-top:1px solid #ddd;margin:2.5mm 0}
 .h3{font-size:9mm;font-weight:700;color:${acc};margin:2.5mm 0 1.5mm;padding-bottom:.8mm;border-bottom:1.5px solid ${acc}}
