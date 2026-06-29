@@ -273,7 +273,8 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
   <button class="btn btn-primary" onclick="exportDocx()">⬇ Xuất Word</button>
   <button class="btn btn-ghost" onclick="previewPdf()" title="Xem trước bố cục A4 trước khi in">👁 Xem trước PDF</button>
   <button class="btn" onclick="exportPdf()" style="background:#8b1a1a;color:#ffd;border:none" onmouseover="this.style.background='#a52020'" onmouseout="this.style.background='#8b1a1a'" title="Xuất và mở hộp thoại in PDF ngay">📄 Xuất PDF</button>
-  <button class="btn" onclick="exportPptx()" style="background:#7B3F00;color:#ffe8cc;border:none" onmouseover="this.style.background='#9c5010'" onmouseout="this.style.background='#7B3F00'" title="Chuyển Markdown thành slide PowerPoint">🎞 Xuất PPT</button>
+  <button class="btn" onclick="exportPptx()" style="background:#7B3F00;color:#ffe8cc;border:none" onmouseover="this.style.background='#9c5010'" onmouseout="this.style.background='#7B3F00'" title="Chuyển Markdown thành slide PowerPoint (ảnh PNG)">🎞 Xuất PPT</button>
+  <button class="btn" onclick="exportPptxText()" style="background:#3B5A00;color:#d4ffb2;border:none" onmouseover="this.style.background='#4e7800'" onmouseout="this.style.background='#3B5A00'" title="Xuất PPT văn bản thuần – căn dòng thông minh, không hoá ảnh, có thể chỉnh sửa trong PowerPoint">📝 Xuất PPT 2 (Text)</button>
   <button class="btn btn-ghost" onclick="exportLecturePdf(false)" title="Xem trước bài giảng 16:9 trước khi xuất">👁 Preview (A4 ngang)</button>
   <button class="btn" onclick="exportLecturePdf(true)" style="background:#1a3d55;color:#a8e6ff;border:none" onmouseover="this.style.background='#1e5070'" onmouseout="this.style.background='#1a3d55'" title="Xuất PDF bài giảng kích thước ngang 16:9, viền khung theo màu template">📊 Xuất bài giảng</button>
 </div>
@@ -2035,6 +2036,276 @@ async function exportPptx(){
     setStatus(`✅ Đã xuất ${slides.length} slide thành PowerPoint!`,'ok');
   }catch(e){
     setStatus('❌ Lỗi xuất PPT: '+e.message,'err');
+    console.error(e);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// PPT TYPE 2 — Native text (no image conversion)
+// ══════════════════════════════════════════════════════════════
+
+/* Convert simple LaTeX math to readable Unicode plain text */
+function mathToPlain(s){
+  return s
+    .replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g,'($1)/($2)')
+    .replace(/\\dfrac\{([^{}]*)\}\{([^{}]*)\}/g,'($1)/($2)')
+    .replace(/\\sqrt\{([^{}]*)\}/g,'√($1)')
+    .replace(/\\sqrt\b/g,'√')
+    .replace(/\\overrightarrow\{([^{}]*)\}/g,'$1→')
+    .replace(/\\overleftarrow\{([^{}]*)\}/g,'←$1')
+    .replace(/\\overleftrightarrow\{([^{}]*)\}/g,'↔$1')
+    .replace(/\\vec\{([^{}]*)\}/g,'$1⃗')
+    .replace(/\\hat\{([^{}]*)\}/g,'$1̂')
+    .replace(/\\overline\{([^{}]*)\}/g,'$1̄')
+    .replace(/\\cdot\b/g,'·').replace(/\\times\b/g,'×').replace(/\\div\b/g,'÷')
+    .replace(/\\pm\b/g,'±').replace(/\\mp\b/g,'∓')
+    .replace(/\\leq\b/g,'≤').replace(/\\geq\b/g,'≥').replace(/\\neq\b/g,'≠')
+    .replace(/\\approx\b/g,'≈').replace(/\\equiv\b/g,'≡').replace(/\\infty\b/g,'∞')
+    .replace(/\\alpha\b/g,'α').replace(/\\beta\b/g,'β').replace(/\\gamma\b/g,'γ')
+    .replace(/\\delta\b/g,'δ').replace(/\\epsilon\b/g,'ε').replace(/\\zeta\b/g,'ζ')
+    .replace(/\\eta\b/g,'η').replace(/\\theta\b/g,'θ').replace(/\\iota\b/g,'ι')
+    .replace(/\\kappa\b/g,'κ').replace(/\\lambda\b/g,'λ').replace(/\\mu\b/g,'μ')
+    .replace(/\\nu\b/g,'ν').replace(/\\xi\b/g,'ξ').replace(/\\pi\b/g,'π')
+    .replace(/\\rho\b/g,'ρ').replace(/\\sigma\b/g,'σ').replace(/\\tau\b/g,'τ')
+    .replace(/\\upsilon\b/g,'υ').replace(/\\phi\b/g,'φ').replace(/\\chi\b/g,'χ')
+    .replace(/\\psi\b/g,'ψ').replace(/\\omega\b/g,'ω')
+    .replace(/\\Delta\b/g,'Δ').replace(/\\Gamma\b/g,'Γ').replace(/\\Sigma\b/g,'Σ')
+    .replace(/\\Omega\b/g,'Ω').replace(/\\Pi\b/g,'Π').replace(/\\Theta\b/g,'Θ')
+    .replace(/\\Lambda\b/g,'Λ').replace(/\\Phi\b/g,'Φ').replace(/\\Psi\b/g,'Ψ')
+    .replace(/\\in\b/g,'∈').replace(/\\notin\b/g,'∉').replace(/\\ni\b/g,'∋')
+    .replace(/\\subset\b/g,'⊂').replace(/\\supset\b/g,'⊃').replace(/\\subseteq\b/g,'⊆')
+    .replace(/\\cup\b/g,'∪').replace(/\\cap\b/g,'∩').replace(/\\emptyset\b/g,'∅')
+    .replace(/\\forall\b/g,'∀').replace(/\\exists\b/g,'∃').replace(/\\neg\b/g,'¬')
+    .replace(/\\land\b/g,'∧').replace(/\\lor\b/g,'∨')
+    .replace(/\\rightarrow\b/g,'→').replace(/\\leftarrow\b/g,'←').replace(/\\leftrightarrow\b/g,'↔')
+    .replace(/\\Rightarrow\b/g,'⇒').replace(/\\Leftarrow\b/g,'⇐').replace(/\\Leftrightarrow\b/g,'⟺')
+    .replace(/\\to\b/g,'→').replace(/\\gets\b/g,'←')
+    .replace(/\^2\b/g,'²').replace(/\^3\b/g,'³').replace(/\^n\b/g,'ⁿ')
+    .replace(/\^{([^{}]*)}/g,'^($1)').replace(/_{([^{}]*)}/g,'_($1)')
+    .replace(/\^([0-9a-zA-Z])/g,'^$1').replace(/_([0-9a-zA-Z])/g,'_$1')
+    .replace(/\\left[\(\[\{|]/g,'(').replace(/\\right[\)\]\}|]/g,')')
+    .replace(/\\[a-zA-Z]+\b/g,'')  // strip remaining unknown commands
+    .replace(/\{([^{}]*)\}/g,'$1') // remove remaining braces
+    .replace(/\s{2,}/g,' ')
+    .trim();
+}
+
+/* Parse inline markdown into PptxGenJS text run array
+   Handles: **bold**, *italic*, `code`, $math$, $$math$$ */
+function mdToTextRuns(text){
+  const runs=[];
+  let i=0;
+  const push=(s,opts)=>{if(s)runs.push({text:s,options:opts||{}});};
+  while(i<text.length){
+    // $$...$$ display math inline
+    if(text[i]==='$'&&text[i+1]==='$'){
+      const end=text.indexOf('$$',i+2);
+      if(end>i+1){push(mathToPlain(text.slice(i+2,end)),{italic:true,color:'1144AA'});i=end+2;continue;}
+    }
+    // $...$ inline math
+    if(text[i]==='$'){
+      const end=text.indexOf('$',i+1);
+      if(end>i){push(mathToPlain(text.slice(i+1,end)),{italic:true,color:'1144AA'});i=end+1;continue;}
+    }
+    // **bold**
+    if(text[i]==='*'&&text[i+1]==='*'){
+      const end=text.indexOf('**',i+2);
+      if(end>i+1){push(text.slice(i+2,end),{bold:true});i=end+2;continue;}
+    }
+    // *italic*
+    if(text[i]==='*'){
+      const end=text.indexOf('*',i+1);
+      if(end>i){push(text.slice(i+1,end),{italic:true});i=end+1;continue;}
+    }
+    // `code`
+    if(text[i]==='`'){
+      const end=text.indexOf('`',i+1);
+      if(end>i){push(text.slice(i+1,end),{fontFace:'Courier New'});i=end+1;continue;}
+    }
+    // Accumulate plain text until next special char
+    let j=i+1;
+    while(j<text.length&&text[j]!=='*'&&text[j]!=='`'&&text[j]!=='$')j++;
+    push(text.slice(i,j),{});
+    i=j;
+  }
+  return runs.length?runs:[{text:text,options:{}}];
+}
+
+/* Estimate how many slide lines a content line needs (for height tracking) */
+function estimateWrappedLines(text,charsPerLine){
+  // strip markdown markers for length estimate
+  const plain=text.replace(/\*\*(.+?)\*\*/g,'$1').replace(/\*(.+?)\*/g,'$1')
+    .replace(/`(.+?)`/g,'$1').replace(/\$\$?(.+?)\$\$?/g,'[$1]');
+  return Math.max(1,Math.ceil(plain.length/charsPerLine));
+}
+
+async function exportPptxText(){
+  if(typeof PptxGenJS==='undefined'){
+    setStatus('❌ PptxGenJS chưa tải, thử lại','err');return;
+  }
+  const md=document.getElementById('editor').value.trim();
+  if(!md){setStatus('⚠ Editor trống','err');return;}
+  setStatus('Đang tạo PowerPoint (Text)…','info');
+  await new Promise(r=>setTimeout(r,30));
+
+  try{
+    const h1Hex=getCssHex('h1-hex','1F3864');
+    const accentHex=getCssHex('accent-hex','0550AE');
+
+    const W=10, H=5.625;
+    const FONT='Times New Roman';
+    const CONTENT_X=0.4, CONTENT_W=W-0.8;
+    const HEADER_H=0.82;
+    const BODY_TOP=HEADER_H+0.18;
+    const BODY_BOT=H-0.18;
+    const BASE_FONT=16;         // pt, normal content
+    const LINE_H=0.34;          // inches per line at BASE_FONT
+    const CHARS_PER_LINE=80;    // approximate chars per line at CONTENT_W, BASE_FONT
+
+    const pptx=new PptxGenJS();
+    pptx.layout='LAYOUT_16x9';
+    const hdrMain=document.getElementById('hdr-main').value.trim();
+    pptx.title=hdrMain||'Bài giảng';
+
+    let slides=parseMarkdownToSlides(md);
+    if(!slides.length){
+      slides=[{type:'content',title:'Nội dung',content:md.split('\n')}];
+    }
+    const total=slides.length;
+
+    for(let si=0;si<slides.length;si++){
+      const sl=slides[si];
+      const slide=pptx.addSlide();
+
+      /* ─── SECTION SLIDE ─── */
+      if(sl.type==='section'){
+        slide.addShape(pptx.ShapeType.rect,{x:0,y:0,w:W,h:H,fill:{color:h1Hex}});
+        slide.addShape(pptx.ShapeType.rect,{x:0,y:H-0.14,w:W,h:0.14,fill:{color:accentHex}});
+
+        const titleRuns=mdToTextRuns(sl.title);
+        const titleArr=titleRuns.map(r=>({
+          text:r.text,
+          options:{bold:true,...r.options,color:'FFFFFF',fontSize:44,fontFace:FONT}
+        }));
+        slide.addText(titleArr,{
+          x:CONTENT_X,y:1.2,w:CONTENT_W,h:H-2.4,
+          align:'center',valign:'middle',wrap:true,autoFit:true
+        });
+        slide.addText(`${si+1} / ${total}`,{
+          x:W-1.3,y:H-0.38,w:1.1,h:0.26,
+          fontSize:12,color:'8899BB',fontFace:FONT,align:'right'
+        });
+        continue;
+      }
+
+      /* ─── CONTENT SLIDE ─── */
+      slide.addShape(pptx.ShapeType.rect,{x:0,y:0,w:W,h:HEADER_H,fill:{color:h1Hex}});
+      slide.addShape(pptx.ShapeType.rect,{x:0,y:HEADER_H,w:W,h:0.04,fill:{color:accentHex}});
+      slide.addShape(pptx.ShapeType.rect,{x:0,y:HEADER_H+0.04,w:W,h:H-HEADER_H-0.04,fill:{color:'FFFFFF'}});
+
+      // Slide number
+      slide.addText(`${si+1}/${total}`,{
+        x:W-0.65,y:0.1,w:0.56,h:0.26,
+        fontSize:10,color:'99BBDD',fontFace:FONT,align:'right'
+      });
+
+      // Title (native text, white, in header bar)
+      const titleRuns=mdToTextRuns(sl.title);
+      const titleArr=titleRuns.map(r=>({
+        text:r.text,
+        options:{bold:true,...r.options,color:'FFFFFF',fontSize:24,fontFace:FONT}
+      }));
+      slide.addText(titleArr,{
+        x:0.35,y:0.07,w:W-1.1,h:HEADER_H-0.14,
+        align:'left',valign:'middle',wrap:true,margin:0
+      });
+
+      /* ─── Content lines ─── */
+      let cy=BODY_TOP;
+
+      for(let li=0;li<sl.content.length;li++){
+        if(cy>BODY_BOT-0.22)break;
+        const raw=sl.content[li];
+
+        // Blank line
+        if(raw.trim()===''){cy+=0.14;continue;}
+
+        // $$...$$ display math (on its own line)
+        const dm=raw.trim().match(/^\$\$(.+?)\$\$$/s);
+        if(dm){
+          const mathText=mathToPlain(dm[1].trim());
+          const remH=Math.min(LINE_H+0.1,BODY_BOT-cy);
+          slide.addText(mathText,{
+            x:CONTENT_X+0.8,y:cy,w:CONTENT_W-1.6,h:remH,
+            fontSize:18,italic:true,color:'1144AA',fontFace:FONT,
+            align:'center',valign:'middle',wrap:true
+          });
+          cy+=remH+0.08;
+          continue;
+        }
+
+        // ### H3 sub-heading
+        if(/^### /.test(raw)){
+          const h3Text=raw.replace(/^### /,'').trim();
+          const h3Runs=mdToTextRuns(h3Text);
+          const h3Arr=h3Runs.map(r=>({
+            text:r.text,
+            options:{bold:true,...r.options,color:accentHex,fontSize:19,fontFace:FONT}
+          }));
+          const wraps=estimateWrappedLines(h3Text,CHARS_PER_LINE);
+          const boxH=Math.min(wraps*0.32+0.04,BODY_BOT-cy);
+          slide.addText(h3Arr,{
+            x:CONTENT_X,y:cy,w:CONTENT_W,h:boxH,
+            align:'left',valign:'top',wrap:true,margin:0
+          });
+          cy+=boxH+0.08;
+          continue;
+        }
+
+        // Bullet / numbered list
+        const listM=raw.match(/^(\s*)([-*+]|\d+\.)\s+(.*)/);
+        const lineText=listM?listM[3]:raw;
+        const isNested=listM&&listM[1].length>0;
+        const isBullet=listM&&!/^\d+\./.test(listM[2]);
+        const isOrdered=listM&&/^\d+\./.test(listM[2]);
+        const bulletStr=isOrdered?(listM[2]+' '):(isBullet?'•  ':'');
+        const indentX=CONTENT_X+(listM?(isNested?0.55:0.25):0);
+        const boxW=CONTENT_W-(indentX-CONTENT_X);
+
+        const textRuns=mdToTextRuns(lineText);
+        const pptRuns=[];
+        if(bulletStr){
+          pptRuns.push({text:bulletStr,options:{bold:false,color:'555555',fontSize:BASE_FONT,fontFace:FONT}});
+        }
+        for(const r of textRuns){
+          const isMath=r.options.italic&&r.options.color==='1144AA';
+          const isBoldMd=r.options.bold;
+          pptRuns.push({
+            text:r.text,
+            options:{
+              ...r.options,
+              color:isBoldMd?accentHex:(isMath?'1144AA':(r.options.italic?'444444':'111111')),
+              fontSize:r.options.fontFace?14:BASE_FONT,
+              fontFace:r.options.fontFace||FONT
+            }
+          });
+        }
+
+        const wraps=estimateWrappedLines(lineText,Math.round(boxW/CONTENT_W*CHARS_PER_LINE));
+        const boxH=Math.min(wraps*LINE_H+0.02,BODY_BOT-cy);
+        slide.addText(pptRuns,{
+          x:indentX,y:cy,w:boxW,h:boxH,
+          align:'left',valign:'top',wrap:true,margin:0
+        });
+        cy+=boxH+0.04;
+      }
+    }
+
+    const fname=(hdrMain||'BaiGiang').replace(/[^a-zA-Z0-9À-ỹ _-]/g,'_');
+    await pptx.writeFile({fileName:fname+'_text.pptx'});
+    setStatus(`✅ Đã xuất ${slides.length} slide PPT Text!`,'ok');
+  }catch(e){
+    setStatus('❌ Lỗi xuất PPT Text: '+e.message,'err');
     console.error(e);
   }
 }
