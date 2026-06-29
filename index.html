@@ -306,6 +306,10 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
       <option value="purple">🔮 Tím Hoàng Gia</option>
     </select>
   </span>
+  <span class="slide-theme-wrap" title="Hiển thị logo ở góc slide PDF">
+    <input type="checkbox" id="slide-logo-on" checked style="cursor:pointer;accent-color:#58a6ff;width:13px;height:13px">
+    <label for="slide-logo-on" style="cursor:pointer">Logo</label>
+  </span>
   <button class="btn" onclick="exportLecturePdfPause()" style="background:#2d1a55;color:#d4b8ff;border:none" onmouseover="this.style.background='#3d2070'" onmouseout="this.style.background='#2d1a55'" title="Xuất PDF trình chiếu: >>> = pause câu hỏi/lời giải | +++ = hiện văn bản lần lượt (reveal)">📽 PDF Trình chiếu (Pause)</button>
 </div>
 
@@ -1613,6 +1617,9 @@ ${ftrHtml}
 function previewPdf(){ openPdfWindow(false); }
 function exportPdf(){  openPdfWindow(true);  }
 
+// Logo góc slide – thay URL để đổi logo toàn bộ PDF trình chiếu
+const SLIDE_LOGO_URL='https://i.ibb.co/wZRKCnpw/10a9a7ae1ede.png';
+
 // ═══════════════════════════════════════════════════════════
 // SLIDE THEMES – 4 giao diện cho PDF bài giảng & trình chiếu
 // ═══════════════════════════════════════════════════════════
@@ -1710,16 +1717,32 @@ function exportLecturePdf(autoPrint=false){
   }
 
   function buildBody(lines){
-    let h='',dmBuf=null;
+    let h='',dmBuf=null,tblBuf=[];
+    function flushTbl(){
+      if(!tblBuf.length)return;
+      const rows=tblBuf.splice(0);
+      const parseRow=l=>l.replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+      const headers=parseRow(rows[0]);
+      const dataRows=rows.slice(2).filter(l=>/\|/.test(l)).map(parseRow);
+      let t='<table class="sl-tbl"><thead><tr>';
+      headers.forEach(c=>{t+=`<th>${mdL(c)}</th>`;});
+      t+='</tr></thead><tbody>';
+      dataRows.forEach(dr=>{t+='<tr>';dr.forEach(c=>{t+=`<td>${mdL(c)}</td>`;});t+='</tr>';});
+      t+='</tbody></table>';
+      h+=t;
+    }
     for(const line of lines){
       const t=line.trim();
       // multi-line display math collector
       if(dmBuf!==null){
-        if(t==='$$'){h+='<div class="dm">$$'+dmBuf+'$$</div>';dmBuf=null;}
+        if(t==='$$'){flushTbl();h+='<div class="dm">$$'+dmBuf+'$$</div>';dmBuf=null;}
         else{dmBuf+=line+'\n';}
         continue;
       }
-      if(t==='$$'){dmBuf='';continue;}
+      if(t==='$$'){flushTbl();dmBuf='';continue;}
+      // table row
+      if(t.startsWith('|')){tblBuf.push(t);continue;}
+      else{flushTbl();}
       if(!t){h+='<div class="gap"></div>';continue;}
       if(/^### /.test(line)){h+='<div class="h3">'+mdL(line.slice(4))+'</div>';continue;}
       // single-line display math $$...$$
@@ -1731,6 +1754,7 @@ function exportLecturePdf(autoPrint=false){
       if(/^---+$/.test(t)){h+='<div class="hr"></div>';continue;}
       h+='<div class="para">'+mdL(line)+'</div>';
     }
+    flushTbl();
     if(dmBuf!==null){h+='<div class="dm">$$'+dmBuf+'$$</div>';}
     return h;
   }
@@ -1739,6 +1763,8 @@ function exportLecturePdf(autoPrint=false){
   slides.forEach((sl,i)=>{
     const num=(i+1)+'/'+total;
     const topTxt=school||(sub)?school+(school&&sub?' &ensp;·&ensp; ':'')+sub:'';
+    const _logoOn=(document.getElementById('slide-logo-on')||{checked:true}).checked;
+    const logoImg=(SLIDE_LOGO_URL&&_logoOn)?`<img class="slide-logo" src="${SLIDE_LOGO_URL}" alt="">`:'';
     if(sl.type==='section'){
       slidesHtml+=`
 <div class="slide ss">
@@ -1748,6 +1774,7 @@ function exportLecturePdf(autoPrint=false){
   <div class="ss-mid"><div class="ss-ttl">${mdL(sl.title)}</div></div>
   <div class="ss-stripe"></div>
   <div class="ss-pg">${num}</div>
+  ${logoImg}
 </div>`;
     } else {
       slidesHtml+=`
@@ -1758,6 +1785,7 @@ function exportLecturePdf(autoPrint=false){
   </div>
   <div class="sc-line"></div>
   <div class="sc-cnt">${buildBody(sl.content)}</div>
+  ${logoImg}
 </div>`;
     }
   });
@@ -1844,6 +1872,14 @@ html,body{background:#888e9a;font-family:"Times New Roman",Times,serif}
 strong{color:${acc};font-weight:700}
 em{font-style:italic}
 code{background:#f0f2f5;padding:0 1.5mm;border-radius:1mm;font-size:6mm;font-family:"Courier New",monospace}
+/* Table */
+.sl-tbl{border-collapse:collapse;width:100%;margin:2mm 0;font-size:6.5mm;line-height:1.25}
+.sl-tbl th,.sl-tbl td{border:1px solid #bbc4cf;padding:1mm 3.5mm;text-align:left;vertical-align:middle}
+.sl-tbl th{background:${h1c};color:#fff;font-weight:700}
+.sl-tbl tr:nth-child(even) td{background:#f2f6fb}
+/* Logo góc slide */
+.slide-logo{position:absolute;bottom:2.5mm;left:3mm;height:9mm;width:auto;z-index:10;object-fit:contain;opacity:.88}
+.ss .slide-logo{bottom:8mm}
 ${themeOverrideCss}
 </style>
 </head>
@@ -1917,14 +1953,30 @@ function exportLecturePdfPause(){
   }
 
   function buildBody(lines){
-    let h='',dmBuf=null;
+    let h='',dmBuf=null,tblBuf=[];
+    function flushTbl(){
+      if(!tblBuf.length)return;
+      const rows=tblBuf.splice(0);
+      const parseRow=l=>l.replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+      const headers=parseRow(rows[0]);
+      const dataRows=rows.slice(2).filter(l=>/\|/.test(l)).map(parseRow);
+      let t='<table class="sl-tbl"><thead><tr>';
+      headers.forEach(c=>{t+=`<th>${mdL(c)}</th>`;});
+      t+='</tr></thead><tbody>';
+      dataRows.forEach(dr=>{t+='<tr>';dr.forEach(c=>{t+=`<td>${mdL(c)}</td>`;});t+='</tr>';});
+      t+='</tbody></table>';
+      h+=t;
+    }
     for(const line of lines){
       const t=line.trim();
       if(dmBuf!==null){
-        if(t==='$$'){h+='<div class="dm">$$'+dmBuf+'$$</div>';dmBuf=null;}
+        if(t==='$$'){flushTbl();h+='<div class="dm">$$'+dmBuf+'$$</div>';dmBuf=null;}
         else{dmBuf+=line+'\n';}continue;
       }
-      if(t==='$$'){dmBuf='';continue;}
+      if(t==='$$'){flushTbl();dmBuf='';continue;}
+      // table row
+      if(t.startsWith('|')){tblBuf.push(t);continue;}
+      else{flushTbl();}
       if(!t){h+='<div class="gap"></div>';continue;}
       if(/^### /.test(line)){h+='<div class="h3">'+mdL(line.slice(4))+'</div>';continue;}
       if(/^\$\$.+\$\$$/.test(t)){h+='<div class="dm">'+t+'</div>';continue;}
@@ -1935,6 +1987,7 @@ function exportLecturePdfPause(){
       if(/^---+$/.test(t)){h+='<div class="hr"></div>';continue;}
       h+='<div class="para">'+mdL(line)+'</div>';
     }
+    flushTbl();
     if(dmBuf!==null){h+='<div class="dm">$$'+dmBuf+'$$</div>';}
     return h;
   }
@@ -1986,6 +2039,7 @@ function exportLecturePdfPause(){
   function hdrHtml(sl,pg){
     return`<div class="sc-hdr"><div class="sc-ttl">${mdL(sl.title)}</div><div class="sc-pg">${pg}/${totalPages}</div></div><div class="sc-line"></div>`;
   }
+  const logoImg=SLIDE_LOGO_URL?`<img class="slide-logo" src="${SLIDE_LOGO_URL}" alt="">`:'';
   // [half] marker: trả về div vùng ghi chú bên phải (chỉ khi isHalf)
   const noteArea=`<div class="note-area"></div>`;
 
@@ -2002,6 +2056,7 @@ function exportLecturePdfPause(){
   <div class="ss-mid"><div class="ss-ttl">${mdL(sl.title)}</div></div>
   <div class="ss-stripe"></div>
   <div class="ss-pg">${pgNum}/${totalPages}</div>
+  ${logoImg}
 </div>`;
       continue;
     }
@@ -2016,7 +2071,7 @@ function exportLecturePdfPause(){
 <div class="slide sc${H?' half':''}">
   ${hdrHtml(sl,pgNum)}
   <div class="sc-cnt">${buildBody(sl.stages[si])}</div>
-  ${H?noteArea:''}${revDot}
+  ${H?noteArea:''}${revDot}${logoImg}
 </div>`;
       }
 
@@ -2035,6 +2090,7 @@ function exportLecturePdfPause(){
   <div class="sc-cnt">${buildBody(sl.qStages[si])}</div>
   ${H?noteArea:''}
   <div class="pause-bar">⏸ &nbsp; Dừng – Học sinh suy nghĩ…</div>
+  ${logoImg}
 </div>`;
         }else{
           // Trang reveal trung gian trong phần câu hỏi
@@ -2044,6 +2100,7 @@ function exportLecturePdfPause(){
   <div class="sc-cnt">${buildBody(sl.qStages[si])}</div>
   ${H?noteArea:''}
   <div class="rev-dot">▶</div>
+  ${logoImg}
 </div>`;
         }
       }
@@ -2063,6 +2120,7 @@ function exportLecturePdfPause(){
     ${buildBody(sl.aStages[si])}
   </div>
   ${H?noteArea:''}${revDot}
+  ${logoImg}
 </div>`;
       }
     }
@@ -2152,6 +2210,14 @@ code{background:#f0f2f5;padding:0 1.5mm;border-radius:1mm;font-size:6mm;font-fam
 }
 /* Trên màn hình: highlight nhạt cho vùng ghi chú */
 @media screen{.note-area{background-color:rgba(240,248,255,.5)}}
+/* Table */
+.sl-tbl{border-collapse:collapse;width:100%;margin:2mm 0;font-size:6.5mm;line-height:1.25}
+.sl-tbl th,.sl-tbl td{border:1px solid #bbc4cf;padding:1mm 3.5mm;text-align:left;vertical-align:middle}
+.sl-tbl th{background:${h1c};color:#fff;font-weight:700}
+.sl-tbl tr:nth-child(even) td{background:#f2f6fb}
+/* Logo góc slide */
+.slide-logo{position:absolute;bottom:2.5mm;left:3mm;height:9mm;width:auto;z-index:10;object-fit:contain;opacity:.88}
+.ss .slide-logo{bottom:8mm}
 ${themeOverrideCss}
 </style>
 </head>
