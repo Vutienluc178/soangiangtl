@@ -220,6 +220,9 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
 /* ── Trộn Đề Modal ── */
 #tronde-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:900;display:none;align-items:center;justify-content:center}
 #tronde-overlay.open{display:flex}
+#doc2slide-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:900;display:none;align-items:center;justify-content:center}
+#doc2slide-overlay.open{display:flex}
+#doc2slide-modal{background:#161b22;border:1px solid #30363d;border-radius:10px;width:min(980px,96vw);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.6);overflow:hidden}
 #tronde-modal{background:#161b22;border:1px solid #30363d;border-radius:10px;width:min(980px,96vw);max-height:92vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.6);overflow:hidden}
 .td-hdr{background:#0d1117;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #30363d;flex-shrink:0}
 .td-hdr h2{font-size:.95rem;font-weight:700;color:#58a6ff;margin:0}
@@ -327,6 +330,8 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
     <label for="slide-logo-on" style="cursor:pointer">Logo</label>
   </span>
   <button class="btn" onclick="exportLecturePdfPause()" style="background:#2d1a55;color:#d4b8ff;border:none" onmouseover="this.style.background='#3d2070'" onmouseout="this.style.background='#2d1a55'" title="Xuất PDF trình chiếu: >>> = pause câu hỏi/lời giải | +++ = hiện văn bản lần lượt (reveal)">📽 PDF Trình chiếu (Pause)</button>
+  <div class="sep"></div>
+  <button class="btn" onclick="openDoc2SlideModal()" style="background:#0f4c3a;color:#8effc9;border:1px solid #1f8f5e" onmouseover="this.style.background='#136349'" onmouseout="this.style.background='#0f4c3a'" title="Tự động tách nội dung Phiếu học tập / đề (PHẦN, Dạng, Câu, Ví dụ) thành từng slide riêng">🎬 PDF → Trình chiếu</button>
 </div>
 
 <!-- ══════════════════════ SETTINGS PANEL ══════════════════════ -->
@@ -672,7 +677,39 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
   </div>
 </div>
 
-<!-- ══════════════════════ SCRIPTS ══════════════════════ -->
+<!-- ══════════════════════ MODAL PDF → TRÌNH CHIẾU ══════════════════════ -->
+<div id="doc2slide-overlay">
+  <div id="doc2slide-modal">
+    <div class="td-hdr">
+      <h2>🎬 Chuyển đổi Phiếu học tập / Đề → Trình chiếu</h2>
+      <button class="td-close" onclick="closeDoc2SlideModal()">✕</button>
+    </div>
+    <div class="td-body">
+      <div class="td-left">
+        <div class="td-label">Nội dung đã tách thành slide (sửa trực tiếp được)</div>
+        <div class="td-hint">
+          <code>## PHẦN...</code> → slide chương mới &nbsp;·&nbsp;
+          <code>### Dạng...</code> hoặc dòng in đậm đứng riêng (VD <code>**1. Định nghĩa**</code>) → slide nội dung mới &nbsp;·&nbsp;
+          <code>**Câu N.**</code> / <code>**Ví dụ N:**</code> → mỗi câu/ví dụ 1 slide riêng &nbsp;·&nbsp;
+          dòng <code>:::kẻ...</code> được lược bỏ (không cần cho slide).
+        </div>
+        <textarea id="d2s-output" spellcheck="false" style="flex:1;min-height:340px;padding:12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-family:'Cascadia Code','Consolas',monospace;font-size:.8rem;line-height:1.7;resize:vertical;outline:none"></textarea>
+      </div>
+      <div class="td-right">
+        <div class="td-label">Thống kê</div>
+        <div id="d2s-stats" class="td-hint">–</div>
+        <button class="td-btn" style="background:#21262d;color:#8b949e;border:1px solid #30363d" onclick="runDoc2SlideConvert()">🔄 Tách lại từ Editor chính</button>
+        <hr class="td-sep">
+        <div class="td-label">Xuất trực tiếp (không đụng Editor chính)</div>
+        <button class="td-btn" style="background:#1a3d55;color:#a8e6ff" onclick="doc2SlideExport(false)">📊 Xuất PDF bài giảng (16:9)</button>
+        <button class="td-btn" style="background:#2d1a55;color:#d4b8ff" onclick="doc2SlideExport(true)">📽 Xuất Trình chiếu (Pause)</button>
+        <hr class="td-sep">
+        <button class="td-btn" style="background:#0f4c3a;color:#8effc9" onclick="doc2SlideInsertToEditor()">📋 Chèn nội dung này vào Editor chính</button>
+        <div style="font-size:.7rem;color:#8b949e;line-height:1.6">Sửa trực tiếp khung bên trái trước khi xuất nếu cần chỉnh vị trí tách slide.</div>
+      </div>
+    </div>
+  </div>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
@@ -2556,18 +2593,139 @@ function parseMarkdownToSlides(md){
     if(/^# /.test(line)){push();cur={type:'section',title:line.slice(2).trim(),content:[]};}
     else if(/^## /.test(line)){push();cur={type:'content',title:line.slice(3).trim(),content:[]};}
     else if(cur){
-      if(/^:::[23]?\s*$/.test(line))continue;
       // === (3+ dấu =) → ngắt slide, tạo slide mới cùng tiêu đề
       if(/^===+\s*$/.test(line)){
         push();
         cur={type:cur.type,title:cur.title,content:[]};
         continue;
       }
+      // Lưu ý: KHÔNG lọc bỏ dòng :::2/:::3/::: nữa – buildBody() cần các dòng này
+      // nguyên vẹn để dựng khối chia cột (xem buildSlideBgPatternCss/:::mcol).
       cur.content.push(line);
     }
   }
   push();
   return slides;
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHUYỂN ĐỔI "PDF THƯỜNG" (Phiếu học tập / đề, dùng ## PHẦN, ### Dạng,
+// **Câu N.**, **Ví dụ N:**...) → markdown dạng SLIDE (# chương / ## nội
+// dung / === ngắt slide cùng tiêu đề), mỗi Phần / Dạng / Câu / Ví dụ ra
+// một slide riêng để dùng cho "📊 Xuất bài giảng" hoặc "📽 Trình chiếu".
+//
+// Quy tắc:
+//  - "# Tiêu đề"        → giữ nguyên (slide bìa)
+//  - "## PHẦN..."       → "# ..."  (slide CHƯƠNG mới)
+//  - "### Dạng..."      → "## ..." (slide NỘI DUNG mới)
+//  - Dòng in đậm đứng riêng 1 mình (VD **1. Định nghĩa**, **Dạng 2:**)
+//    NHƯNG chỉ khi chưa gặp "### " nào trong Phần hiện tại (áp dụng cho
+//    lý thuyết không có cấu trúc Dạng, và cho khối Đáp án theo từng Dạng)
+//    → cũng lên "## ..." (slide nội dung mới riêng).
+//  - "**Câu N.**", "**Bài N.**", "**Ví dụ N:**" (đứng đầu dòng, có số)
+//    → chèn "===" trước đó để tách thành 1 slide riêng, GIỮ NGUYÊN tiêu
+//    đề ## đang chạy (vd vẫn là "Dạng 1").
+//  - Xóa các dòng ":::kẻ N ..." (dòng kẻ để viết tay – không cần cho slide)
+//  - Xóa các dòng --- / === gốc (dấu ngăn cách cũ) – tool tự sinh lại.
+// ═══════════════════════════════════════════════════════════
+function convertDocToSlideMd(raw){
+  const lines=String(raw||'').replace(/\r\n/g,'\n').split('\n');
+  const out=[];
+  let inTopSection=true; // chưa gặp ### nào kể từ đầu tài liệu / Phần hiện tại
+  let hasContent=false;  // đã có nội dung kể từ tiêu đề (#, ##) hoặc === gần nhất
+
+  const isBoldOnlyLine=t=>/^\*\*[^*]+\*\*\s*$/.test(t);
+  const isQaTrigger   =t=>/^\*\*(Câu|Bài|Ví dụ|VD)\s*\d+\s*[.:)]?\s*\*\*/i.test(t);
+  const isRuledLine   =t=>/^:::kẻ\s+\d+(?:\s+\S+)?\s*$/i.test(t);
+  const isDividerLine =t=>t==='---'||t==='===';
+  const stripBold     =t=>t.replace(/^\*\*/,'').replace(/\*\*\s*$/,'').trim();
+
+  for(const line of lines){
+    const t=line.trim();
+
+    if(isRuledLine(t))continue;     // bỏ dòng kẻ viết tay – không cần cho slide
+    if(isDividerLine(t))continue;   // bỏ --- / === gốc, tool tự sinh === khi cần
+
+    if(/^#\s+/.test(line)){         // # Tiêu đề tài liệu → slide bìa
+      out.push(line); hasContent=false; inTopSection=true; continue;
+    }
+    if(/^##\s+/.test(line)){        // ## PHẦN... → # (slide CHƯƠNG)
+      out.push('# '+line.replace(/^##\s+/,''));
+      hasContent=false; inTopSection=true; continue;
+    }
+    if(/^###\s+/.test(line)){       // ### Dạng... → ## (slide NỘI DUNG)
+      out.push('## '+line.replace(/^###\s+/,''));
+      hasContent=false; inTopSection=false; continue;
+    }
+    if(!t){ out.push(''); continue; }
+
+    if(isQaTrigger(t)){             // **Câu N.** / **Ví dụ N:** → slide riêng
+      if(hasContent){ out.push(''); out.push('==='); out.push(''); }
+      out.push(line); hasContent=true; continue;
+    }
+
+    if(inTopSection && isBoldOnlyLine(t)){ // nhãn in đậm đứng riêng → slide mới
+      // Không cần chèn "===" ở đây: dòng "## " tự nó đã bắt đầu 1 slide mới
+      // (parseMarkdownToSlides push() slide cũ + tạo slide mới ngay khi gặp "## ").
+      // Chèn thêm "===" trước đó sẽ tạo ra 1 slide RỖNG trùng tiêu đề cũ xen giữa.
+      out.push('## '+stripBold(t));
+      hasContent=false; continue;
+    }
+
+    out.push(line); hasContent=true;
+  }
+  return out.join('\n').replace(/\n{3,}/g,'\n\n').trim()+'\n';
+}
+
+function _d2sStats(md){
+  const slides=parseMarkdownToSlides(md);
+  const sections=slides.filter(s=>s.type==='section').length;
+  const contents=slides.filter(s=>s.type==='content').length;
+  return{total:slides.length,sections,contents};
+}
+
+function openDoc2SlideModal(){
+  document.getElementById('doc2slide-overlay').classList.add('open');
+  runDoc2SlideConvert();
+}
+function closeDoc2SlideModal(){
+  document.getElementById('doc2slide-overlay').classList.remove('open');
+}
+function runDoc2SlideConvert(){
+  const src=document.getElementById('editor').value;
+  if(!src.trim()){
+    document.getElementById('d2s-output').value='';
+    document.getElementById('d2s-stats').textContent='⚠ Editor chính đang trống – hãy dán/ soạn nội dung Phiếu học tập trước.';
+    return;
+  }
+  const converted=convertDocToSlideMd(src);
+  document.getElementById('d2s-output').value=converted;
+  const st=_d2sStats(converted);
+  document.getElementById('d2s-stats').innerHTML=
+    `✅ Tách được <b style="color:#7ee8a2">${st.total}</b> slide &nbsp;(<b>${st.sections}</b> slide chương · <b>${st.contents}</b> slide nội dung/câu)`;
+}
+// Xuất trực tiếp từ nội dung đã tách trong modal, KHÔNG đụng vào Editor chính
+// (tạm thời gán vào #editor để tái dùng đúng logic exportLecturePdf/Pause, rồi trả lại)
+function doc2SlideExport(pause){
+  const ta=document.getElementById('editor');
+  const converted=document.getElementById('d2s-output').value;
+  if(!converted.trim()){setStatus('⚠ Chưa có nội dung để xuất – bấm "Tách lại từ Editor chính" trước','err');return;}
+  const original=ta.value;
+  ta.value=converted;
+  try{
+    if(pause) exportLecturePdfPause(); else exportLecturePdf(true);
+  } finally {
+    ta.value=original;
+  }
+}
+function doc2SlideInsertToEditor(){
+  const converted=document.getElementById('d2s-output').value;
+  if(!converted.trim())return;
+  if(!confirm('Thao tác này sẽ THAY THẾ toàn bộ nội dung Editor chính bằng bản đã tách slide. Tiếp tục?'))return;
+  document.getElementById('editor').value=converted;
+  updatePreview();
+  closeDoc2SlideModal();
+  setStatus('✅ Đã chèn nội dung tách slide vào Editor chính','ok');
 }
 
 /* ── Main PPT export ── */
