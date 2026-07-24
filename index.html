@@ -266,10 +266,9 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
   <div class="topbar-title">📄 Markdown <span>+Math</span> → Word</div>
   <div class="sep"></div>
 
-  <!-- Settings toggle -->
+  <!-- NHÓM 1: Thiết lập tài liệu -->
   <button class="btn btn-ghost" id="btn-settings" onclick="toggleSettings()">⚙ Cài đặt</button>
 
-  <!-- Template selector -->
   <select class="tpl-select" id="tpl-select" onchange="loadTemplate(this.value)">
     <option value="">📋 Chèn mẫu…</option>
     <option value="math">📐 Công thức toán học</option>
@@ -281,9 +280,6 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
     <option value="hinhhoc3d">📐 Hình học không gian (có hình vẽ TikZ)</option>
   </select>
 
-  <div class="sep"></div>
-
-  <!-- Theme buttons -->
   <span style="font-size:.75rem;color:#8b949e">Màu:</span>
   <button class="tpl-btn active" id="tpl-blue" title="Xanh Navy" onclick="setTheme('blue')"></button>
   <button class="tpl-btn" id="tpl-green" title="Xanh Lá" onclick="setTheme('green')"></button>
@@ -296,17 +292,28 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
 
   <div class="sep"></div>
 
+  <!-- NHÓM 2: Công cụ soạn nội dung (chèn vào editor) -->
   <button class="btn" onclick="openRlModal()" style="background:#1e3a2a;color:#7ee8a2;border:1px solid #2ea043" onmouseover="this.style.background='#22472e'" onmouseout="this.style.background='#1e3a2a'" title="Chèn dòng kẻ cho học sinh làm bài">✏ Kẻ dòng</button>
   <button class="btn" onclick="openTronDeModal()" style="background:#2d3f6e;color:#8ab4f8;border:1px solid #388bfd" onmouseover="this.style.background='#1f4082'" onmouseout="this.style.background='#2d3f6e'" title="Nhập ngân hàng câu hỏi, tạo 4 mã đề và xuất Word">🔀 Trộn đề</button>
+
   <div class="sep"></div>
+
+  <!-- NHÓM 3: Xuất Word / PDF thường -->
   <button class="btn btn-ghost" onclick="clearEditor()">🗑 Xóa</button>
   <button class="btn btn-primary" onclick="exportDocx()">⬇ Xuất Word</button>
   <button class="btn btn-ghost" onclick="previewPdf()" title="Xem trước bố cục A4 trước khi in">👁 Xem trước PDF</button>
   <button class="btn" onclick="exportPdf()" style="background:#8b1a1a;color:#ffd;border:none" onmouseover="this.style.background='#a52020'" onmouseout="this.style.background='#8b1a1a'" title="Xuất và mở hộp thoại in PDF ngay">📄 Xuất PDF</button>
+
+  <div class="sep"></div>
+
+  <!-- NHÓM 4: Xuất PowerPoint -->
   <button class="btn" onclick="exportPptx()" style="background:#7B3F00;color:#ffe8cc;border:none" onmouseover="this.style.background='#9c5010'" onmouseout="this.style.background='#7B3F00'" title="Chuyển Markdown thành slide PowerPoint (ảnh PNG)">🎞 Xuất PPT</button>
   <button class="btn" onclick="exportPptxText()" style="background:#3B5A00;color:#d4ffb2;border:none" onmouseover="this.style.background='#4e7800'" onmouseout="this.style.background='#3B5A00'" title="Xuất PPT văn bản thuần – căn dòng thông minh, không hoá ảnh, có thể chỉnh sửa trong PowerPoint">📝 Xuất PPT 2 (Text)</button>
-  <button class="btn btn-ghost" onclick="exportLecturePdf(false)" title="Xem trước bài giảng 16:9 trước khi xuất">👁 Preview (A4 ngang)</button>
-  <button class="btn" onclick="exportLecturePdf(true)" style="background:#1a3d55;color:#a8e6ff;border:none" onmouseover="this.style.background='#1e5070'" onmouseout="this.style.background='#1a3d55'" title="Xuất PDF bài giảng kích thước ngang 16:9, viền khung theo màu template">📊 Xuất bài giảng</button>
+
+  <div class="sep"></div>
+
+  <!-- NHÓM 5: Slide bài giảng / Trình chiếu (công cụ chuyển đổi → tuỳ chỉnh giao diện → xuất) -->
+  <button class="btn" onclick="openDoc2SlideModal()" style="background:#0f4c3a;color:#8effc9;border:1px solid #1f8f5e" onmouseover="this.style.background='#136349'" onmouseout="this.style.background='#0f4c3a'" title="Tự động tách nội dung Phiếu học tập / đề (PHẦN, Dạng, Câu, Ví dụ) thành từng slide riêng">🎬 PDF → Trình chiếu</button>
   <span class="slide-theme-wrap">
     <label for="slide-theme">🎨 Giao diện:</label>
     <select id="slide-theme" title="Chọn giao diện cho slide PDF bài giảng / trình chiếu">
@@ -329,9 +336,9 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
     <input type="checkbox" id="slide-logo-on" checked style="cursor:pointer;accent-color:#58a6ff;width:13px;height:13px">
     <label for="slide-logo-on" style="cursor:pointer">Logo</label>
   </span>
+  <button class="btn btn-ghost" onclick="exportLecturePdf(false)" title="Xem trước bài giảng 16:9 trước khi xuất">👁 Preview (A4 ngang)</button>
+  <button class="btn" onclick="exportLecturePdf(true)" style="background:#1a3d55;color:#a8e6ff;border:none" onmouseover="this.style.background='#1e5070'" onmouseout="this.style.background='#1a3d55'" title="Xuất PDF bài giảng kích thước ngang 16:9, viền khung theo màu template">📊 Xuất bài giảng</button>
   <button class="btn" onclick="exportLecturePdfPause()" style="background:#2d1a55;color:#d4b8ff;border:none" onmouseover="this.style.background='#3d2070'" onmouseout="this.style.background='#2d1a55'" title="Xuất PDF trình chiếu: >>> = pause câu hỏi/lời giải | +++ = hiện văn bản lần lượt (reveal)">📽 PDF Trình chiếu (Pause)</button>
-  <div class="sep"></div>
-  <button class="btn" onclick="openDoc2SlideModal()" style="background:#0f4c3a;color:#8effc9;border:1px solid #1f8f5e" onmouseover="this.style.background='#136349'" onmouseout="this.style.background='#0f4c3a'" title="Tự động tách nội dung Phiếu học tập / đề (PHẦN, Dạng, Câu, Ví dụ) thành từng slide riêng">🎬 PDF → Trình chiếu</button>
 </div>
 
 <!-- ══════════════════════ SETTINGS PANEL ══════════════════════ -->
@@ -1257,6 +1264,15 @@ function md2docxBody(md){
     const ulm=line.match(/^(\s*)([-*+])\s+(.+)$/);if(ulm){xml+=para(lineContent(ulm[3]),{numId:1,lvl:Math.floor(ulm[1].length/2)});i++;continue;}
     // OL
     const olm=line.match(/^(\s*)\d+[.)]\s+(.+)$/);if(olm){xml+=para(lineContent(olm[2]),{numId:2,lvl:Math.floor(olm[1].length/2)});i++;continue;}
+    // Bảng KHÔNG VIỀN (để căn đáp án trắc nghiệm A/B/C/D thẳng hàng)
+    if(line.trim()==='<!--plain-table-->'){
+      i++;
+      if(i<lines.length&&lines[i].includes('|')&&i+1<lines.length&&/^\|?[\s:|-]+\|/.test(lines[i+1])){
+        const tl=[];while(i<lines.length&&lines[i].trim()!='')tl.push(lines[i++]);
+        xml+=buildPlainTable(tl);
+      }
+      continue;
+    }
     // Table
     if(line.includes('|')&&i+1<lines.length&&/^\|?[\s:|-]+\|/.test(lines[i+1])){const tl=[];while(i<lines.length&&lines[i].trim()!='')tl.push(lines[i++]);xml+=buildTable(tl);continue;}
     // Dòng trắc nghiệm lựa chọn: bắt đầu bằng A. B. C. D. (4 đáp án trên 1 dòng)
@@ -1266,6 +1282,21 @@ function md2docxBody(md){
     xml+=para(lineContent(line.trim()));i++;
   }
   return xml;
+}
+
+// Bảng KHÔNG VIỀN, độ rộng cột CỐ ĐỊNH (tblLayout=fixed) – dùng để căn các
+// đáp án trắc nghiệm A/B/C/D thẳng hàng tuyệt đối, không phụ thuộc độ dài
+// văn bản mỗi đáp án (khác với buildTable dùng cho bảng dữ liệu thông thường
+// – có viền + tô màu header).
+function buildPlainTable(tableLines){
+  const parseRow=l=>l.replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+  if(tableLines.length<2)return'';
+  const rows=[parseRow(tableLines[0]),...tableLines.slice(2).filter(l=>l.includes('|')).map(parseRow)];
+  const nc=rows[0].length||1;const cw=Math.floor(9360/nc);
+  const cell=content=>`<w:tc><w:tcPr><w:tcW w:w="${cw}" w:type="dxa"/><w:tcBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/></w:tcBorders><w:tcMar><w:top w:w="40" w:type="dxa"/><w:left w:w="0" w:type="dxa"/><w:bottom w:w="40" w:type="dxa"/><w:right w:w="200" w:type="dxa"/></w:tcMar><w:vAlign w:val="top"/></w:tcPr><w:p><w:pPr><w:spacing w:after="0"/></w:pPr>${lineContent(content)}</w:p></w:tc>`;
+  let tbl=`<w:tbl><w:tblPr><w:tblW w:w="9360" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblBorders><w:top w:val="none"/><w:left w:val="none"/><w:bottom w:val="none"/><w:right w:val="none"/><w:insideH w:val="none"/><w:insideV w:val="none"/></w:tblBorders></w:tblPr><w:tblGrid>${rows[0].map(()=>`<w:gridCol w:w="${cw}"/>`).join('')}</w:tblGrid>`;
+  for(const row of rows){while(row.length<nc)row.push('');tbl+=`<w:tr>${row.slice(0,nc).map(cell).join('')}</w:tr>`;}
+  return tbl+'</w:tbl>';
 }
 
 function buildTable(tableLines){
@@ -1527,6 +1558,24 @@ function openPdfWindow(autoPrint){
   </div>`:'';
 
   const rawContentHtml=(document.getElementById('preview-content')||{}).innerHTML||'';
+
+  // ── Cột bài làm (answer-col): trước đây chỉ hiển thị trong khung xem trước
+  // trong app (#preview), KHÔNG được áp dụng khi xuất/in PDF thật.
+  // Lưu ý: dùng position:fixed + "top" và "bottom" cùng lúc (để trình duyệt tự
+  // tính chiều cao) bị lỗi khi in nhiều trang – Chrome tính sai chiều cao khung
+  // tham chiếu của phần tử fixed trong lúc phân trang, khiến cột bị co lệch,
+  // cắt ngang nội dung. Khắc phục bằng cách cho "height" MỘT GIÁ TRỊ CỐ ĐỊNH
+  // (mm) tính sẵn, không để trình duyệt tự suy ra từ top+bottom.
+  const colVal=s.answerCol; // '', '1/4', '1/3'
+  const colPct=colVal==='1/3'?33.33:(colVal==='1/4'?25:0);
+  const colWidthMm=colPct?+(((210-2*mgSide))*colPct/100).toFixed(1):0;
+  const mgRight=colPct?mgSide+colWidthMm:mgSide;
+  const colHeightMm=colPct?+((297-mg-mgBottom).toFixed(1)):0;
+  const answerColHtml=colPct?`
+  <div class="doc-answer-col">
+    <div class="dac-label">Bài làm</div>
+    <div class="dac-lines"></div>
+  </div>`:'';
   // Serialize bất kỳ <script type="text/tikz"> còn lại (chưa render) thành data-tikz
   const contentHtml=rawContentHtml.replace(/<div class="tikz-block"[^>]*>\s*<script type="text\/tikz">([\s\S]*?)<\/script>\s*<\/div>/g,(_,code)=>{
     const b64=btoa(unescape(encodeURIComponent(code)));
@@ -1550,7 +1599,7 @@ function openPdfWindow(autoPrint){
   const toolbar=autoPrint?'':
     `<div class="ptb">
       <span style="font-weight:700;font-size:.92rem">📄 Xem trước PDF – A4</span>
-      <span style="opacity:.55;font-size:.78rem">│ ${fs}pt · lề ${mg}mm · dòng ${lh}${cp?' · ⚡ Tiết kiệm':''}${footerLogoOn?' · 🖼 Logo chân trang (chỉ hiện khi in)':''}</span>
+      <span style="opacity:.55;font-size:.78rem">│ ${fs}pt · lề ${mg}mm · dòng ${lh}${cp?' · ⚡ Tiết kiệm':''}${footerLogoOn?' · 🖼 Logo chân trang (chỉ hiện khi in)':''}${colPct?' · 📋 Cột bài làm '+colVal+' (chỉ hiện khi in)':''}</span>
       <button onclick="window.print()"
         style="background:#27ae60;color:#fff;border:none;padding:5px 18px;border-radius:5px;cursor:pointer;font-weight:700;font-size:.85rem;margin-left:auto">
         🖨 In / Lưu PDF
@@ -1582,7 +1631,7 @@ body{font-family:'Times New Roman',Georgia,serif;font-size:${fs}pt;line-height:$
 @media screen{
   html{background:#b2bac6;min-height:100vh}
   body{padding:${autoPrint?'12px':'62px 24px 40px'};display:flex;flex-direction:column;align-items:center}
-  .pw{background:#fff;width:210mm;padding:${mg}mm ${mgSide}mm ${mgBottom}mm ${mgSide}mm;box-shadow:0 6px 36px rgba(0,0,0,.3);min-height:297mm;position:relative;${wmStyle}}
+  .pw{background:#fff;width:210mm;padding:${mg}mm ${mgRight}mm ${mgBottom}mm ${mgSide}mm;box-shadow:0 6px 36px rgba(0,0,0,.3);min-height:297mm;position:relative;${wmStyle}}
   .ptb{position:fixed;top:0;left:0;right:0;height:52px;background:#1b3451;color:#fff;
        display:flex;align-items:center;gap:10px;padding:0 18px;
        font-family:system-ui,sans-serif;z-index:9999;box-shadow:0 2px 10px rgba(0,0,0,.35)}
@@ -1591,9 +1640,24 @@ body{font-family:'Times New Roman',Georgia,serif;font-size:${fs}pt;line-height:$
 /* ── In ra PDF ── */
 @media print{
   body{${wmStyle}}
-  .pw{display:contents}
+  .pw{padding:0 ${colWidthMm}mm 0 0}
   .ptb{display:none}
 }
+
+/* ── Cột bài làm – lặp lại trên MỌI trang khi in (position:fixed).
+   QUAN TRỌNG: dùng "height" cố định (mm) đã tính sẵn ở JS, KHÔNG dùng
+   top+bottom để trình duyệt tự suy ra chiều cao – Chrome tính sai khi in
+   nhiều trang, khiến cột bị co lệch/cắt ngang nội dung (đã xảy ra trước đó).
+   Chỉ hiện ở @media print vì chế độ xem trước màn hình không phân trang thật. */
+.doc-answer-col{
+  display:none;
+  position:fixed;top:${mg}mm;right:${mgSide}mm;width:${colWidthMm}mm;height:${colHeightMm}mm;
+  border-left:1.3px solid #999;padding-left:3mm;box-sizing:border-box;
+  flex-direction:column;overflow:hidden;
+}
+.doc-answer-col .dac-label{font-size:8pt;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2mm;flex-shrink:0;font-family:Arial,sans-serif}
+.doc-answer-col .dac-lines{flex:1;background-image:repeating-linear-gradient(to bottom,transparent,transparent 8mm,rgba(0,0,0,.32) 8mm,rgba(0,0,0,.32) 8.2mm)}
+@media print{.doc-answer-col{display:flex}}
 
 /* ── Header / Footer ── */
 .doc-hdr{text-align:center;border-bottom:2.5px solid ${acc};padding-bottom:${cp?'6':'9'}px;margin-bottom:${cp?'10':'14'}px}
@@ -1712,6 +1776,7 @@ ${contentHtml}
 ${ftrHtml}
 </div>
 ${footerLogoHtml}
+${answerColHtml}
 </body>
 </html>`;
 
@@ -3468,18 +3533,14 @@ function toggleQuickBar(){
 
 function buildQuickBar(){
   const GROUPS=[
-    {lbl:'Slide', items:[
-      {lb:'# Tiêu đề',  tt:'Tiêu đề slide section (# …)',    act:()=>quickIns('# ',{mode:'line'})},
-      {lb:'## Slide',   tt:'Slide nội dung (## …)',            act:()=>quickIns('## ',{mode:'line'})},
-      {lb:'### Mục',    tt:'Sub-heading (### …)',              act:()=>quickIns('### ',{mode:'line'})},
-      {lb:'===',        tt:'Ngắt slide (giữ tiêu đề)',         act:()=>quickIns('\n===\n',{mode:'inline',cursor:5})},
-      {lb:'>>>',        tt:'Điểm pause (câu hỏi | lời giải)', act:()=>quickIns('\n>>>\n',{mode:'inline',cursor:5})},
-      {lb:'+++',        tt:'Hiện văn bản lần lượt (reveal)',   act:()=>quickIns('\n+++\n',{mode:'inline',cursor:5})},
-    ]},
     {lbl:'Định dạng', items:[
       {lb:'**đậm**',    tt:'Chữ đậm (bôi chọn rồi bấm)',      act:()=>quickIns('**',{mode:'inline',wrapSel:['**','**']})},
       {lb:'*nghiêng*',  tt:'Chữ nghiêng',                      act:()=>quickIns('*',{mode:'inline',wrapSel:['*','*']})},
       {lb:'`code`',     tt:'Inline code',                      act:()=>quickIns('`',{mode:'inline',wrapSel:['`','`']})},
+    ]},
+    {lbl:'Danh sách', items:[
+      {lb:'- Mục',      tt:'Danh sách gạch đầu dòng',          act:()=>quickIns('- ',{mode:'line'})},
+      {lb:'1. Mục',     tt:'Danh sách đánh số',                 act:()=>quickIns('1. ',{mode:'line'})},
     ]},
     {lbl:'Toán', items:[
       {lb:'$…$',        tt:'Công thức inline',                  act:()=>quickIns('$|$',{mode:'inline'})},
@@ -3489,10 +3550,6 @@ function buildQuickBar(){
       {lb:'^{}',        tt:'Mũ ^{}',                           act:()=>quickIns('^{|}',         {mode:'inline'})},
       {lb:'_{}',        tt:'Chỉ số dưới _{}',                  act:()=>quickIns('_{|}',         {mode:'inline'})},
     ]},
-    {lbl:'Danh sách', items:[
-      {lb:'- Mục',      tt:'Danh sách gạch đầu dòng',          act:()=>quickIns('- ',{mode:'line'})},
-      {lb:'1. Mục',     tt:'Danh sách đánh số',                 act:()=>quickIns('1. ',{mode:'line'})},
-    ]},
     {lbl:'Bố cục', items:[
       {lb:':::2',       tt:'Bắt đầu 2 cột (:::2) – dùng trong Preview/Word/PDF bài giảng', act:()=>quickIns(':::2\n',{mode:'inline'})},
       {lb:':::3',       tt:'Bắt đầu 3 cột (:::3) – dùng trong Preview/Word/PDF bài giảng', act:()=>quickIns(':::3\n',{mode:'inline'})},
@@ -3500,6 +3557,14 @@ function buildQuickBar(){
       {lb:'---',        tt:'Đường kẻ ngang',                   act:()=>quickIns('\n---\n',{mode:'inline'})},
       {lb:'[half]',     tt:'Trống 1/2 bên phải khi in PDF trình chiếu', act:()=>quickIns('[half]\n',{mode:'line'})},
       {lb:':::ngắt',    tt:'Ngắt trang khi in PDF thường (đề/tài liệu)', act:()=>quickIns(':::ngắt\n',{mode:'line'})},
+    ]},
+    {lbl:'Slide', items:[
+      {lb:'# Tiêu đề',  tt:'Tiêu đề slide section (# …)',    act:()=>quickIns('# ',{mode:'line'})},
+      {lb:'## Slide',   tt:'Slide nội dung (## …)',            act:()=>quickIns('## ',{mode:'line'})},
+      {lb:'### Mục',    tt:'Sub-heading (### …)',              act:()=>quickIns('### ',{mode:'line'})},
+      {lb:'===',        tt:'Ngắt slide (giữ tiêu đề)',         act:()=>quickIns('\n===\n',{mode:'inline',cursor:5})},
+      {lb:'>>>',        tt:'Điểm pause (câu hỏi | lời giải)', act:()=>quickIns('\n>>>\n',{mode:'inline',cursor:5})},
+      {lb:'+++',        tt:'Hiện văn bản lần lượt (reveal)',   act:()=>quickIns('\n+++\n',{mode:'inline',cursor:5})},
     ]},
   ];
 
@@ -4090,34 +4155,54 @@ function createVariant(questions, shuffleOpts){
   });
 }
 
+/* ── Phần đầu đề thi (tiêu đề căn giữa + khung Mã đề nổi bật + dòng Họ tên/SBD) ──
+   Xây trực tiếp bằng OOXML (không qua markdown) để kiểm soát căn chỉnh tuyệt đối. */
+function buildExamHeaderXml(settings, code, totalQ, accentHex){
+  const title=settings.title||'ĐỀ KIỂM TRA';
+  const school=settings.school||'';
+  const subject=settings.subject||'';
+  const grade=settings.grade||'';
+  const time=settings.time||'';
+
+  const metaParts=[];
+  if(subject)metaParts.push(`Môn: ${subject}`);
+  if(grade)metaParts.push(`Lớp: ${grade}`);
+  if(time)metaParts.push(`Thời gian: ${time} phút`);
+  metaParts.push(`${totalQ} câu trắc nghiệm`);
+  const metaLine=metaParts.join('   –   ');
+
+  const run=(text,rpr)=>`<w:r><w:rPr>${rpr}</w:rPr><w:t xml:space="preserve">${xEsc(text)}</w:t></w:r>`;
+
+  // Hàng trên: trái = trường (nếu có), phải = khung "Mã đề" nổi bật, có viền
+  const leftContent=school
+    ?`<w:p><w:pPr><w:spacing w:after="0"/></w:pPr>${run(school.toUpperCase(),'<w:b/><w:bCs/><w:sz w:val="22"/><w:szCs w:val="22"/>')}</w:p>`+
+     `<w:p><w:pPr><w:spacing w:after="0"/></w:pPr>${run('ĐỀ CHÍNH THỨC','<w:i/><w:iCs/><w:sz w:val="20"/><w:szCs w:val="20"/><w:color w:val="666666"/>')}</w:p>`
+    :'<w:p/>';
+  const leftCell=`<w:tc><w:tcPr><w:tcW w:w="6760" w:type="dxa"/><w:tcBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/></w:tcBorders><w:vAlign w:val="center"/></w:tcPr>${leftContent}</w:tc>`;
+  const codeCell=`<w:tc><w:tcPr><w:tcW w:w="2600" w:type="dxa"/><w:tcBorders><w:top w:val="single" w:sz="12" w:space="0" w:color="${accentHex}"/><w:left w:val="single" w:sz="12" w:space="0" w:color="${accentHex}"/><w:bottom w:val="single" w:sz="12" w:space="0" w:color="${accentHex}"/><w:right w:val="single" w:sz="12" w:space="0" w:color="${accentHex}"/></w:tcBorders><w:vAlign w:val="center"/></w:tcPr><w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="0"/></w:pPr>${run('Mã đề: '+code,`<w:b/><w:bCs/><w:sz w:val="26"/><w:szCs w:val="26"/><w:color w:val="${accentHex}"/>`)}</w:p></w:tc>`;
+  const topTbl=`<w:tbl><w:tblPr><w:tblW w:w="9360" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblBorders><w:top w:val="none"/><w:left w:val="none"/><w:bottom w:val="none"/><w:right w:val="none"/><w:insideH w:val="none"/><w:insideV w:val="none"/></w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="6760"/><w:gridCol w:w="2600"/></w:tblGrid><w:tr>${leftCell}${codeCell}</w:tr></w:tbl>`;
+
+  let xml=topTbl;
+  xml+=para(run(title.toUpperCase(),'<w:b/><w:bCs/><w:sz w:val="32"/><w:szCs w:val="32"/>'),{center:true});
+  xml+=para(run(metaLine,'<w:i/><w:iCs/><w:sz w:val="22"/><w:szCs w:val="22"/>'),{center:true});
+  xml+=para(run('Họ và tên học sinh: .............................................................. Số báo danh: ....................','<w:sz w:val="22"/><w:szCs w:val="22"/>'));
+  xml+=para('',{bottomBorder:true});
+  return xml;
+}
+
 /* ── Convert variant questions to markdown string for md2docxBody ── */
 function variantToMarkdown(variantQs, settings, code){
   const lines=[];
-  const title=settings.title||'ĐỀ KIỂM TRA';
-  const subject=settings.subject;
-  const time=settings.time;
-  const grade=settings.grade;
-
-  // Exam header block (will be rendered as paragraphs)
-  lines.push(`**${title}**`);
-  const meta=[];
-  if(subject)meta.push(`**Môn:** ${subject}`);
-  if(grade) meta.push(`**Lớp:** ${grade}`);
-  if(time)  meta.push(`**Thời gian:** ${time} phút`);
-  if(meta.length) lines.push(meta.join(' &ensp; '));
-  lines.push(`**Mã đề: ${code}** &ensp; *(${variantQs.length} câu trắc nghiệm)*`);
-  lines.push('');
-  lines.push('---');
-  lines.push('');
-
   variantQs.forEach((q,i)=>{
     // Question stem — preserve math inline
     lines.push(`**Câu ${i+1}.** ${q.stem}`);
     lines.push('');
-    // Options: 2 per line (A+B, C+D) to save paper
+    // Đáp án A/B/C/D: bảng KHÔNG VIỀN, cột rộng bằng nhau → thẳng hàng tuyệt đối
     const [oA,oB,oC,oD]=q.options;
-    lines.push(`&ensp;**A.** ${oA.text} &ensp;&ensp;**B.** ${oB.text}`);
-    lines.push(`&ensp;**C.** ${oC.text} &ensp;&ensp;**D.** ${oD.text}`);
+    lines.push('<!--plain-table-->');
+    lines.push(`| **A.** ${oA.text} | **B.** ${oB.text} |`);
+    lines.push('|---|---|');
+    lines.push(`| **C.** ${oC.text} | **D.** ${oD.text} |`);
     lines.push('');
   });
 
@@ -4232,8 +4317,8 @@ async function exportTronDe(){
   const thHex=getCssHex('th-hex','DDEEFF');
 
   /* Generate one .docx blob for given markdown + settings */
-  async function makeDocxBlob(md, docSettings){
-    const bodyXml=md2docxBody(md);
+  async function makeDocxBlob(md, docSettings, extraXml=''){
+    const bodyXml=extraXml+md2docxBody(md);
     const useHdr=!!(docSettings.hdrMain||docSettings.hdrSub);
     const hdrRef=useHdr?`<w:headerReference w:type="default" r:id="rId4"/>`:'';
     const docXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -4280,10 +4365,11 @@ async function exportTronDe(){
       prog.textContent=`Đang tạo mã đề ${v.code}… (${i+1}/${variants.length})`;
       await new Promise(r=>setTimeout(r,20));
       const md=variantToMarkdown(v.questions, settings, v.code);
+      const examHeaderXml=buildExamHeaderXml(settings, v.code, v.questions.length, accentHex);
       const blob=await makeDocxBlob(md,{
         ...wordSettings,
         hdrSub:settings.subject?`Môn: ${settings.subject}${settings.grade?' – Lớp: '+settings.grade:''}`:''
-      });
+      },examHeaderXml);
       masterZip.file(`MaDe_${v.code}.docx`,blob);
     }
 
