@@ -96,6 +96,17 @@ textarea#editor{flex:1;padding:16px;background:#0d1117;color:#c9d1d9;font-family
 #preview table{border-collapse:collapse;margin:1rem 0;width:100%}
 #preview th,#preview td{border:1px solid #d0d7de;padding:7px 14px;text-align:left}
 #preview th{background:var(--th-bg,#DDEEFF);font-weight:600;color:#24292f}
+/* Bảng đáp án trắc nghiệm A/B/C/D – nhận diện tự động từ "Câu N: ... A. B. C. D."
+   Không viền, cột đều nhau, thẳng hàng tuyệt đối (khác bảng dữ liệu thường). */
+#preview .mcq-table-wrap{margin:.35rem 0 1.1rem}
+#preview .mcq-table-wrap table{width:100%;border-collapse:collapse;margin:0;table-layout:fixed}
+#preview .mcq-table-wrap th,#preview .mcq-table-wrap td{
+  border:none;background:none!important;color:inherit;font-weight:inherit;
+  padding:5px 16px 5px 0;text-align:left;vertical-align:top;
+  line-height:1.5;word-wrap:break-word;overflow-wrap:break-word;
+}
+#preview .mcq-table-wrap th:first-child,#preview .mcq-table-wrap td:first-child{width:50%}
+#preview .mcq-table-wrap th:last-child,#preview .mcq-table-wrap td:last-child{width:50%;padding-right:0}
 #preview tr:nth-child(even) td{background:#fbfcfd}
 #preview hr{border:none;border-top:2px solid #e1e4e8;margin:1.2rem 0}
 /* Ngắt trang PDF (:::ngắt) – chỉ là gợi ý trực quan trong preview, PDF thật mới thực sự ngắt trang */
@@ -202,6 +213,9 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
 .mc-3col{columns:3;column-gap:1.4rem;column-rule:1px dashed #b8c8d8;margin:.5rem 0}
 .mc-2col p,.mc-3col p{break-inside:avoid;margin:.2rem 0}
 .mc-label{font-size:.7rem;font-weight:700;letter-spacing:2px;color:var(--accent);opacity:.6;margin-bottom:3px;text-transform:uppercase}
+/* ── Căn giữa văn bản (:::center ... :::) ── */
+.center-block{text-align:center;margin:.5rem 0}
+.center-block img,.center-block svg{margin-left:auto;margin-right:auto}
 /* ── Dòng kẻ học sinh (:::kẻ N kiểu) ── */
 .ruled-lines{display:block;margin:2px 0}
 .ruled-lines .rl{display:block}
@@ -272,12 +286,16 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
   <select class="tpl-select" id="tpl-select" onchange="loadTemplate(this.value)">
     <option value="">📋 Chèn mẫu…</option>
     <option value="math">📐 Công thức toán học</option>
+    <option value="kt15">⏱ Kiểm tra 15 phút</option>
     <option value="exam45">📝 Đề kiểm tra 45 phút</option>
     <option value="exam90">📜 Đề thi học kỳ (2 cột TN)</option>
     <option value="mcq3col">🗂 Mẫu trắc nghiệm 3 cột</option>
-    <option value="pptslide">🎞 Mẫu slide bài giảng (PPT)</option>
+    <option value="phieuhoctap">📚 Chuyên đề học tập (Phiếu chung)</option>
     <option value="chuyende">📚 Chuyên đề bài học – Vecto</option>
     <option value="hinhhoc3d">📐 Hình học không gian (có hình vẽ TikZ)</option>
+    <option value="decuong">📖 Đề cương ôn tập chương</option>
+    <option value="btvn">🏠 Phiếu bài tập về nhà</option>
+    <option value="pptslide">🎞 Mẫu slide bài giảng (PPT)</option>
   </select>
 
   <span style="font-size:.75rem;color:#8b949e">Màu:</span>
@@ -589,7 +607,7 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
 <!-- ══════════════════════ STATUS BAR ══════════════════════ -->
 <div class="statusbar">
   <span id="status-msg" class="info">Sẵn sàng</span>
-  <span style="margin-left:auto;opacity:.6">**bold** *italic* `code` #H1 ##H2 | $toán học$ | $$khối$$ | <span style="color:#58a6ff">:::2</span> / <span style="color:#58a6ff">:::3</span> câu nhiều cột → <span style="color:#58a6ff">:::</span> kết thúc | <span style="color:#ffa657">===</span> ngắt slide | <span style="color:#e8b877">:::ngắt</span> ngắt trang PDF | <span style="color:#7ee8a2">:::kẻ 5 ngang</span> dòng kẻ | <span style="color:#d2a8ff">```tikz</span> hình vẽ</span>
+  <span style="margin-left:auto;opacity:.6">**bold** *italic* `code` #H1 ##H2 | $toán học$ | $$khối$$ | <span style="color:#58a6ff">:::2</span> / <span style="color:#58a6ff">:::3</span> câu nhiều cột → <span style="color:#58a6ff">:::</span> kết thúc | <span style="color:#79c0ff">:::center</span> căn giữa → <span style="color:#58a6ff">:::</span> kết thúc | <span style="color:#ffa657">===</span> ngắt slide | <span style="color:#e8b877">:::ngắt</span> ngắt trang PDF | <span style="color:#7ee8a2">:::kẻ 5 ngang</span> dòng kẻ | <span style="color:#d2a8ff">```tikz</span> hình vẽ</span>
 </div>
 
 <!-- ══════════════════════ TRỘN ĐỀ MODAL ══════════════════════ -->
@@ -943,6 +961,7 @@ function latex2omml(latex,display=false){
 // Chuyển :::2 / :::3 ... ::: thành <div class="mc-Ncol"> cho preview
 function preprocessMultiCol(md){
   return md
+    .replace(/^:::center\s*$/mg, '<div class="center-block">')
     .replace(/^:::([23])\s*$/mg, (_,n)=>`<div class="mc-${n}col">`)
     .replace(/^:::\s*$/mg,'</div>');
 }
@@ -963,8 +982,73 @@ function processPageBreaks(md){
     '\n<div class="pdf-pagebreak" title="Ngắt trang khi in PDF"></div>\n');
 }
 
+// ═══════════════════════════════════════════════════════════
+// NHẬN DIỆN CÂU TRẮC NGHIỆM: "Câu N: <đề bài> / A. .. / B. .. / C. .. / D. .."
+// gõ trực tiếp trong editor chính (không cần qua modal Trộn đề) → tự động
+// canh 4 đáp án thành bảng 2 cột thẳng hàng khi xuất PDF hoặc Word.
+// Dùng chung 1 bộ quét (scanMcqBlocks) cho cả 2 luồng xuất khác nhau:
+//  - Preview/PDF (marked.js): bọc bảng trong <div class="mcq-table-wrap">
+//    để CSS ép về không viền (marked hiểu HTML thô, xem #preview .mcq-table-wrap)
+//  - Word (md2docxBody): dùng marker <!--plain-table--> đã có sẵn từ tính
+//    năng Trộn đề (buildPlainTable – bảng không viền, layout cố định)
+// ═══════════════════════════════════════════════════════════
+function scanMcqBlocks(md){
+  const lines=String(md||'').replace(/\r\n/g,'\n').split('\n');
+  const blocks=[];
+  let buf=[];
+  const flushText=()=>{if(buf.length){blocks.push({type:'text',raw:buf.join('\n')});buf=[];}};
+  // Nhận diện dòng đáp án: chấp nhận cả "A. ..." thường lẫn "**A.** ..." in đậm
+  // chữ cái (và biến thể **A**. , *A.* ...).
+  const OPT_RE=/^\*{0,2}([A-D])\*{0,2}[.)]\*{0,2}\s*(.*)$/;
+  let i=0;
+  while(i<lines.length){
+    const line=lines[i];
+    const qm=line.match(/^\s*(?:\*\*)?Câu\s*(\d+)\s*[.:)]?\*?\*?\s*[:.]?\s*(.*)$/i);
+    if(!qm){buf.push(line);i++;continue;}
+    // Gom đề bài: có thể trải nhiều dòng cho tới khi gặp dòng đáp án A./B./C./D.
+    let j=i+1,stem=qm[2].trim();
+    while(j<lines.length){
+      const t=lines[j].trim();
+      if(OPT_RE.test(t))break;
+      if(t===''){j++;continue;}
+      if(/^\s*(?:\*\*)?Câu\s*\d+/i.test(t))break; // gặp câu mới -> không phải khối hợp lệ
+      stem+=(stem?' ':'')+t;j++;
+    }
+    // Gom đúng 4 đáp án A,B,C,D
+    const opts=[];let k=j;
+    while(k<lines.length&&opts.length<4){
+      const t=lines[k].trim();
+      const om=t.match(OPT_RE);
+      if(om){opts.push(om[2]);k++;}
+      else if(t===''){k++;}
+      else break;
+    }
+    if(stem&&opts.length===4){
+      flushText();
+      blocks.push({type:'mcq',num:qm[1],stem,opts});
+      i=k;
+    }else{
+      buf.push(line);i++; // không đủ 4 đáp án -> giữ nguyên dòng gốc, không nhận diện
+    }
+  }
+  flushText();
+  return blocks;
+}
+function processMcqForPreview(md){
+  return scanMcqBlocks(md).map(b=>{
+    if(b.type==='text')return b.raw;
+    return `**Câu ${b.num}:** ${b.stem}\n\n<div class="mcq-table-wrap">\n\n| **A.** ${b.opts[0]} | **B.** ${b.opts[1]} |\n|---|---|\n| **C.** ${b.opts[2]} | **D.** ${b.opts[3]} |\n\n</div>\n`;
+  }).join('\n');
+}
+function processMcqForDocx(md){
+  return scanMcqBlocks(md).map(b=>{
+    if(b.type==='text')return b.raw;
+    return `**Câu ${b.num}:** ${b.stem}\n\n<!--plain-table-->\n| **A.** ${b.opts[0]} | **B.** ${b.opts[1]} |\n|---|---|\n| **C.** ${b.opts[2]} | **D.** ${b.opts[3]} |\n`;
+  }).join('\n');
+}
+
 // Preprocessor kết hợp dùng cho preview + PDF
-function preprocessAll(md){ return processPageBreaks(processRuledLines(preprocessMultiCol(processTikzInMd(md)))); }
+function preprocessAll(md){ return processPageBreaks(processRuledLines(preprocessMultiCol(processMcqForPreview(processTikzInMd(md))))); }
 
 // ── TikZ support ──
 // Encode tikz code thành data-src để tránh HTML escaping
@@ -1229,6 +1313,21 @@ function md2docxBody(md){
       if(sty==='cột2'||sty==='cot2'){xml+=makeRuledLineTable2Col(n);}
       else{for(let j=0;j<n;j++)xml+=makeRuledLinePara(sty);}
       i++;continue;
+    }
+    // Khối căn giữa :::center ... ::: (áp dụng center cho MỌI đoạn bên trong,
+    // kể cả tiêu đề/công thức, bằng cách xử lý đệ quy rồi ép w:jc="center").
+    // Lưu ý: para() chỉ xuất <w:pPr> khi có tùy chọn định dạng nào đó, nên
+    // đoạn văn thường (không bold/không gì đặc biệt) sẽ KHÔNG có <w:pPr> –
+    // cần xử lý riêng 2 trường hợp: đã có <w:pPr> (chèn thêm) và chưa có (tạo mới).
+    if(line.trim()===':::center'){
+      i++;
+      const blockLines=[];
+      while(i<lines.length&&lines[i].trim()!==':::'){blockLines.push(lines[i]);i++;}
+      if(i<lines.length)i++; // consume :::
+      xml+=md2docxBody(blockLines.join('\n'))
+        .replace(/<w:pPr>/g,'<w:pPr><w:jc w:val="center"/>')
+        .replace(/<w:p>(?!<w:pPr>)/g,'<w:p><w:pPr><w:jc w:val="center"/></w:pPr>');
+      continue;
     }
     // Multi-column block :::2 or :::3 ... :::
     const colM=line.trim().match(/^:::([23])$/);
@@ -1701,11 +1800,24 @@ th,td{border:1px solid #ccc;padding:${sp.td};text-align:left}
 th{background:${thc};font-weight:600;color:#1a1a1a}
 tr:nth-child(even) td{background:#f9fafb}
 tr{page-break-inside:avoid}
+/* Bảng đáp án trắc nghiệm A/B/C/D tự nhận diện – không viền, cột đều, thẳng hàng */
+.mcq-table-wrap{margin:.3rem 0 ${sp.p}}
+.mcq-table-wrap table{width:100%;border-collapse:collapse;margin:0;table-layout:fixed;page-break-inside:avoid}
+.mcq-table-wrap th,.mcq-table-wrap td{
+  border:none!important;background:none!important;color:inherit;font-weight:inherit;
+  padding:4px 16px 4px 0;text-align:left;vertical-align:top;
+  line-height:1.5;word-wrap:break-word;overflow-wrap:break-word;
+}
+.mcq-table-wrap th:first-child,.mcq-table-wrap td:first-child{width:50%}
+.mcq-table-wrap th:last-child,.mcq-table-wrap td:last-child{width:50%;padding-right:0}
 
 /* ── Multi-column (:::2/:::3) ── */
 .mc-2col{columns:2;column-gap:1.8rem;column-rule:1px dashed #bcd;margin:${sp.p} 0}
 .mc-3col{columns:3;column-gap:1.2rem;column-rule:1px dashed #bcd;margin:${sp.p} 0}
 .mc-2col p,.mc-3col p{break-inside:avoid;margin:.15rem 0}
+/* ── Căn giữa văn bản (:::center ... :::) ── */
+.center-block{text-align:center;margin:${sp.p} 0}
+.center-block img,.center-block svg{margin-left:auto;margin-right:auto}
 
 /* ── Dòng kẻ học sinh ── */
 .ruled-lines{display:block;margin:2px 0}
@@ -3276,7 +3388,7 @@ async function exportDocx(){
   try{
     await new Promise(r=>setTimeout(r,30));
     const s=getSettings();
-    let bodyXml=md2docxBody(md);
+    let bodyXml=md2docxBody(processMcqForDocx(md));
     const h1Hex=getCssHex('h1-hex','1F3864');
     const h2Hex=getCssHex('h2-hex','2E74B5');
     const h3Hex=getCssHex('h3-hex','5B9BD5');
@@ -3557,6 +3669,7 @@ function buildQuickBar(){
       {lb:'---',        tt:'Đường kẻ ngang',                   act:()=>quickIns('\n---\n',{mode:'inline'})},
       {lb:'[half]',     tt:'Trống 1/2 bên phải khi in PDF trình chiếu', act:()=>quickIns('[half]\n',{mode:'line'})},
       {lb:':::ngắt',    tt:'Ngắt trang khi in PDF thường (đề/tài liệu)', act:()=>quickIns(':::ngắt\n',{mode:'line'})},
+      {lb:'⇔ center',   tt:'Căn giữa văn bản (:::center ... :::)',       act:()=>quickIns(':::center\n|\n:::\n',{mode:'inline'})},
     ]},
     {lbl:'Slide', items:[
       {lb:'# Tiêu đề',  tt:'Tiêu đề slide section (# …)',    act:()=>quickIns('# ',{mode:'line'})},
@@ -3798,12 +3911,16 @@ function loadTemplate(val){
   if(!val)return;
   document.getElementById('tpl-select').value='';
   if(val==='math')document.getElementById('editor').value=SAMPLE_MATH;
+  else if(val==='kt15')document.getElementById('editor').value=SAMPLE_KT15;
   else if(val==='exam45')document.getElementById('editor').value=SAMPLE_EXAM45;
   else if(val==='exam90')document.getElementById('editor').value=SAMPLE_EXAM90;
   else if(val==='mcq3col')document.getElementById('editor').value=SAMPLE_MCQ3COL;
+  else if(val==='phieuhoctap')document.getElementById('editor').value=SAMPLE_PHIEUHOCTAP;
   else if(val==='pptslide')document.getElementById('editor').value=SAMPLE_PPT;
   else if(val==='chuyende')document.getElementById('editor').value=SAMPLE_CHUYENDE;
   else if(val==='hinhhoc3d')document.getElementById('editor').value=SAMPLE_HINHHOC3D;
+  else if(val==='decuong')document.getElementById('editor').value=SAMPLE_DECUONG;
+  else if(val==='btvn')document.getElementById('editor').value=SAMPLE_BTVN;
   updatePreview();
 }
 
@@ -3872,6 +3989,27 @@ Phân phối chuẩn: $f(x) = \\dfrac{1}{\\sigma\\sqrt{2\\pi}}\\,e^{-\\frac{(x-\
 | $\\sin x$ | $\\cos x$ | $-\\cos x+C$ |
 | $e^x$ | $e^x$ | $e^x+C$ |
 | $\\ln x$ | $\\dfrac{1}{x}$ | $x\\ln x - x+C$ |`;
+
+const SAMPLE_KT15=`## TRƯỜNG THPT .................. – TỔ TOÁN
+## KIỂM TRA 15 PHÚT
+### Môn: Toán 10 | Năm học: 2025 – 2026
+
+**Họ và tên:** .......................................................................... **Lớp:** .............
+
+**Điểm:** ................. &ensp;&ensp;&ensp; **Lời phê của giáo viên:** ...........................................................
+
+---
+
+**Câu 1** *(4,0 điểm).* Giải phương trình: $2x^2 - 5x + 2 = 0$.
+:::kẻ 4 đứt
+
+**Câu 2** *(3,0 điểm).* Tìm tập xác định của hàm số $y = \\sqrt{3 - x} + \\dfrac{1}{x + 1}$.
+:::kẻ 4 đứt
+
+**Câu 3** *(3,0 điểm).* Xét tính chẵn, lẻ của hàm số $y = x^3 - 2x$.
+:::kẻ 4 đứt
+
+*Cán bộ coi thi không giải thích thêm. — Hết —*`;
 
 const SAMPLE_EXAM45=`## TRƯỜNG THPT .................. – TỔ TOÁN
 ## ĐỀ KIỂM TRA GIỮA HỌC KỲ I – NĂM HỌC 2025–2026
@@ -3992,6 +4130,52 @@ const SAMPLE_MCQ3COL=`## TRƯỜNG THPT .................. – TỔ TOÁN
 
 **Câu 12.** Tổng các góc trong tam giác: &ensp; **A.** $90°$ &ensp; **B.** $180°$ &ensp; **C.** $270°$ &ensp; **D.** $360°$
 :::`;
+
+const SAMPLE_PHIEUHOCTAP=`## TRƯỜNG THPT .................. – TỔ TOÁN
+# PHIẾU HỌC TẬP: HÀM SỐ BẬC HAI
+### Môn: Toán 10 | Chương: Hàm số – Đồ thị | Tiết: .......
+
+**Họ và tên học sinh:** .......................................................................... **Lớp:** .............
+
+---
+
+## I. Kiến thức trọng tâm
+
+Hàm số bậc hai có dạng $y = ax^2 + bx + c\\ (a \\neq 0)$, đồ thị là đường parabol có:
+
+* **Tọa độ đỉnh:** $I\\left(-\\dfrac{b}{2a};\\ -\\dfrac{\\Delta}{4a}\\right)$
+* **Trục đối xứng:** đường thẳng $x = -\\dfrac{b}{2a}$
+* **Bề lõm:** hướng lên nếu $a > 0$; hướng xuống nếu $a < 0$
+
+## II. Ví dụ minh họa
+
+**Ví dụ.** Xác định tọa độ đỉnh của $(P): y = x^2 - 4x + 3$.
+
+*Lời giải:* Ta có $a=1,\\ b=-4$. Hoành độ đỉnh $x_I = -\\dfrac{-4}{2\\cdot1} = 2$, suy ra $y_I = 2^2-4\\cdot2+3=-1$. Vậy đỉnh $I(2;-1)$.
+
+## III. Bài tập tự luyện
+
+**Bài 1.** Tìm tọa độ đỉnh và trục đối xứng của $(P): y = -2x^2 + 4x + 1$.
+:::kẻ 3 đứt
+
+**Bài 2.** Lập bảng biến thiên của hàm số $y = x^2 - 6x + 5$.
+:::kẻ 4 đứt
+
+## IV. Bài tập trắc nghiệm
+
+Câu 1: Parabol $y = x^2 - 4x + 3$ có trục đối xứng là đường thẳng nào?
+A. $x = 2$.
+B. $x = -2$.
+C. $x = 4$.
+D. $x = -4$.
+
+Câu 2: Hàm số $y = -x^2 + 2x - 3$ đồng biến trên khoảng nào?
+A. $(-\\infty;1)$.
+B. $(1;+\\infty)$.
+C. $(-\\infty;-1)$.
+D. $(-1;+\\infty)$.
+
+*Ghi chú giáo viên: đây là mẫu phiếu học tập dùng chung – có thể đổi tên chuyên đề, nội dung mục I–IV theo bài học cụ thể.*`;
 
 const SAMPLE_PPT=`# Hàm số bậc hai – $y = ax^2 + bx + c$
 
@@ -4708,6 +4892,93 @@ b) Diện tích toàn phần và thể tích.
 
 :::kẻ 6 ngang
 `;
+
+const SAMPLE_DECUONG=`## TRƯỜNG THPT .................. – TỔ TOÁN
+# ĐỀ CƯƠNG ÔN TẬP CHƯƠNG: HÀM SỐ BẬC HAI
+### Môn: Toán 10 | Năm học: 2025 – 2026
+
+**Họ và tên học sinh:** .......................................................................... **Lớp:** .............
+
+---
+
+## A. Tóm tắt kiến thức
+
+:::2
+**1. Hàm số bậc hai**
+
+$y = ax^2+bx+c\\ (a\\neq0)$
+
+Đỉnh $I\\left(-\\dfrac{b}{2a};-\\dfrac{\\Delta}{4a}\\right)$
+
+**2. Dấu tam thức bậc hai**
+
+$a>0$: $f(x)>0$ ngoài khoảng 2 nghiệm
+
+$a<0$: $f(x)>0$ trong khoảng 2 nghiệm
+
+**3. Phương trình – Bất phương trình**
+
+$ax^2+bx+c=0 \\Leftrightarrow x=\\dfrac{-b\\pm\\sqrt{\\Delta}}{2a}$
+
+**4. Hệ thức Viète**
+
+$x_1+x_2=-\\dfrac{b}{a},\\ x_1x_2=\\dfrac{c}{a}$
+:::
+
+## B. Câu hỏi trắc nghiệm ôn tập
+
+Câu 1: Số nghiệm của phương trình $x^2 - 3x + 2 = 0$ là:
+A. 0.
+B. 1.
+C. 2.
+D. Vô số.
+
+Câu 2: Tập nghiệm của bất phương trình $x^2 - 4 \\leq 0$ là:
+A. $[-2;2]$.
+B. $(-2;2)$.
+C. $(-\\infty;-2]\\cup[2;+\\infty)$.
+D. $\\varnothing$.
+
+Câu 3: Cho $x_1,x_2$ là nghiệm của $x^2-5x+6=0$. Giá trị $x_1+x_2$ bằng:
+A. $-5$.
+B. $5$.
+C. $-6$.
+D. $6$.
+
+## C. Bài tập tự luận ôn tập
+
+**Bài 1.** Giải phương trình $2x^2 - 7x + 3 = 0$.
+:::kẻ 3 đứt
+
+**Bài 2.** Giải bất phương trình $-x^2 + 5x - 4 \\geq 0$.
+:::kẻ 3 đứt
+
+**Bài 3.** Tìm $m$ để phương trình $x^2 - 2mx + m + 2 = 0$ có hai nghiệm phân biệt.
+:::kẻ 4 đứt
+
+*Học sinh ôn tập kỹ lý thuyết mục A trước khi làm phần B, C.*`;
+
+const SAMPLE_BTVN=`## TRƯỜNG THPT .................. – TỔ TOÁN
+## PHIẾU BÀI TẬP VỀ NHÀ
+### Môn: Toán 10 | Tuần: ....... | Hạn nộp: ..... / ..... / 20.....
+
+**Họ và tên học sinh:** .......................................................................... **Lớp:** .............
+
+---
+
+**Bài 1.** Giải phương trình $x^2 - 6x + 8 = 0$.
+:::kẻ 3 đứt
+
+**Bài 2.** Tìm tập xác định của hàm số $y = \\sqrt{2x - 6}$.
+:::kẻ 3 đứt
+
+**Bài 3.** Xét tính đồng biến, nghịch biến của hàm số $y = 2x^2 - 8x + 1$ trên khoảng $(3;+\\infty)$.
+:::kẻ 4 đứt
+
+**Bài 4.** Vẽ đồ thị hàm số $y = -x^2 + 2x + 3$.
+:::kẻ 6 đứt
+
+*Phụ huynh ký xác nhận đã kiểm tra:* .......................................................`;
 
 const SAMPLE_QBANK=`Câu 1. Phương trình $x^2 - 5x + 6 = 0$ có tổng hai nghiệm bằng:
 A. $2$
