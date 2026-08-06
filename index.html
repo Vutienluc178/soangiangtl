@@ -747,7 +747,7 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
 // 1. KÝ HIỆU TOÁN HỌC
 // ═══════════════════════════════════════════════════════════
 const GREEK={alpha:'α',beta:'β',gamma:'γ',delta:'δ',epsilon:'ε',varepsilon:'ε',zeta:'ζ',eta:'η',theta:'θ',vartheta:'ϑ',iota:'ι',kappa:'κ',lambda:'λ',mu:'μ',nu:'ν',xi:'ξ',pi:'π',varpi:'ϖ',rho:'ρ',varrho:'ϱ',sigma:'σ',varsigma:'ς',tau:'τ',upsilon:'υ',phi:'φ',varphi:'φ',chi:'χ',psi:'ψ',omega:'ω',Alpha:'Α',Beta:'Β',Gamma:'Γ',Delta:'Δ',Epsilon:'Ε',Zeta:'Ζ',Eta:'Η',Theta:'Θ',Iota:'Ι',Kappa:'Κ',Lambda:'Λ',Mu:'Μ',Nu:'Ν',Xi:'Ξ',Pi:'Π',Rho:'Ρ',Sigma:'Σ',Tau:'Τ',Upsilon:'Υ',Phi:'Φ',Chi:'Χ',Psi:'Ψ',Omega:'Ω'};
-const OPS={times:'×',div:'÷',cdot:'·',cdots:'⋯',ldots:'…',vdots:'⋮',ddots:'⋱',pm:'±',mp:'∓',ast:'∗',leq:'≤',geq:'≥',neq:'≠',ne:'≠',approx:'≈',equiv:'≡',sim:'∼',simeq:'≃',cong:'≅',propto:'∝',ll:'≪',gg:'≫','in':'∈',notin:'∉',ni:'∋',subset:'⊂',supset:'⊃',subseteq:'⊆',supseteq:'⊇',cup:'∪',cap:'∩',emptyset:'∅',varnothing:'∅',setminus:'∖',forall:'∀',exists:'∃',nexists:'∄',infty:'∞',partial:'∂',nabla:'∇',rightarrow:'→',leftarrow:'←',Rightarrow:'⇒',Leftarrow:'⇐',leftrightarrow:'↔',Leftrightarrow:'⟺',uparrow:'↑',downarrow:'↓',to:'→',gets:'←',mapsto:'↦',longrightarrow:'⟶',longleftarrow:'⟵',Longrightarrow:'⟹',Longleftarrow:'⟸',because:'∵',therefore:'∴',angle:'∠',measuredangle:'∡',perp:'⊥',parallel:'∥',triangle:'△',square:'□',circ:'∘',bullet:'•',oplus:'⊕',ominus:'⊖',otimes:'⊗',oslash:'⊘',langle:'⟨',rangle:'⟩',land:'∧',lor:'∨',lnot:'¬',neg:'¬',top:'⊤',bot:'⊥',vdash:'⊢',models:'⊨',Re:'ℜ',Im:'ℑ',wp:'℘',prime:'′',hbar:'ℏ',sin:'sin',cos:'cos',tan:'tan',cot:'cot',sec:'sec',csc:'csc',arcsin:'arcsin',arccos:'arccos',arctan:'arctan',sinh:'sinh',cosh:'cosh',tanh:'tanh',coth:'coth',log:'log',ln:'ln',lg:'lg',exp:'exp',det:'det',dim:'dim',deg:'deg',mod:'mod',gcd:'gcd',lcm:'lcm',ker:'ker',max:'max',min:'min',sup:'sup',inf:'inf',arg:'arg',sgn:'sgn'};
+const OPS={times:'×',div:'÷',cdot:'·',cdots:'⋯',ldots:'…',vdots:'⋮',ddots:'⋱',pm:'±',mp:'∓',ast:'∗',leq:'≤',le:'≤',geq:'≥',ge:'≥',neq:'≠',ne:'≠',approx:'≈',equiv:'≡',sim:'∼',simeq:'≃',cong:'≅',propto:'∝',ll:'≪',gg:'≫','in':'∈',notin:'∉',ni:'∋',notni:'∌',subset:'⊂',supset:'⊃',subseteq:'⊆',supseteq:'⊇',nsubseteq:'⊈',cup:'∪',cap:'∩',emptyset:'∅',varnothing:'∅',setminus:'∖',forall:'∀',exists:'∃',nexists:'∄',infty:'∞',partial:'∂',nabla:'∇',rightarrow:'→',leftarrow:'←',Rightarrow:'⇒',Leftarrow:'⇐',leftrightarrow:'↔',Leftrightarrow:'⟺',iff:'⟺',uparrow:'↑',downarrow:'↓',to:'→',gets:'←',mapsto:'↦',longrightarrow:'⟶',longleftarrow:'⟵',Longrightarrow:'⟹',Longleftarrow:'⟸',because:'∵',therefore:'∴',angle:'∠',measuredangle:'∡',perp:'⊥',parallel:'∥',nparallel:'∦',triangle:'△',square:'□',circ:'∘',bullet:'•',oplus:'⊕',ominus:'⊖',otimes:'⊗',oslash:'⊘',langle:'⟨',rangle:'⟩',land:'∧',wedge:'∧',lor:'∨',vee:'∨',lnot:'¬',neg:'¬',top:'⊤',bot:'⊥',vdash:'⊢',models:'⊨',mid:'∣',nmid:'∤',shortmid:'∣',Re:'ℜ',Im:'ℑ',wp:'℘',prime:'′',hbar:'ℏ',sin:'sin',cos:'cos',tan:'tan',cot:'cot',sec:'sec',csc:'csc',arcsin:'arcsin',arccos:'arccos',arctan:'arctan',sinh:'sinh',cosh:'cosh',tanh:'tanh',coth:'coth',log:'log',ln:'ln',lg:'lg',exp:'exp',det:'det',dim:'dim',deg:'deg',mod:'mod',gcd:'gcd',lcm:'lcm',ker:'ker',max:'max',min:'min',sup:'sup',inf:'inf',arg:'arg',sgn:'sgn'};
 const FUNCS=new Set(['sin','cos','tan','cot','sec','csc','arcsin','arccos','arctan','sinh','cosh','tanh','coth','log','ln','lg','exp','det','dim','deg','mod','gcd','lcm','ker','max','min','sup','inf','arg','sgn','lim','Re','Im']);
 
 // ═══════════════════════════════════════════════════════════
@@ -1065,11 +1065,48 @@ function processMcqForDocx(md){
   }).join('\n');
 }
 
+// ═══════════════════════════════════════════════════════════
+// GỘP HÀNG BẢNG BỊ TÁCH THÀNH NHIỀU DÒNG VẬT LÝ (thường gặp khi AI soạn nội
+// dung: 1 ô trong bảng có nhiều đoạn, AI xuống dòng bằng <br> RỒI xuống dòng
+// thật (Enter) luôn, khiến 1 hàng bảng logic bị vỡ thành nhiều dòng file).
+// Bảng markdown chuẩn yêu cầu MỖI HÀNG nằm trên ĐÚNG 1 dòng, nên khi 1 dòng
+// bắt đầu bằng "|" nhưng KHÔNG kết thúc bằng "|" (bị cắt giữa chừng), ta gộp
+// tiếp các dòng sau vào cho tới khi gặp dòng kết thúc bằng "|" – khôi phục
+// lại đúng 1 hàng hoàn chỉnh. Chạy TRƯỚC mọi bước xử lý bảng khác.
+// ═══════════════════════════════════════════════════════════
+function mergeMultilineTableRows(md){
+  const lines=String(md||'').replace(/\r\n/g,'\n').split('\n');
+  const out=[];
+  let i=0;
+  while(i<lines.length){
+    const line=lines[i];
+    const t=line.trimEnd();
+    if(/^\s*\|/.test(line)&&!/\|\s*$/.test(t)){
+      // Hàng bảng bị cắt giữa chừng -> gộp các dòng tiếp theo cho tới khi đủ 1 hàng
+      let merged=t;
+      let j=i+1,guard=0;
+      while(j<lines.length&&guard<20){
+        const nxt=lines[j];
+        const nxtT=nxt.trim();
+        merged+=(nxtT?' ':'')+nxtT;
+        j++;guard++;
+        if(/\|\s*$/.test(nxt.trimEnd())&&nxtT!=='')break; // dòng vừa gộp đã kết thúc bằng | -> đủ 1 hàng
+        if(nxtT===''&&guard>1)break; // gặp dòng trống mà vẫn chưa đủ -> dừng an toàn, tránh nuốt cả đoạn sau
+      }
+      out.push(merged);
+      i=j;
+      continue;
+    }
+    out.push(line);i++;
+  }
+  return out.join('\n');
+}
+
 // Preprocessor kết hợp dùng cho preview + PDF
 // Gạch chân ++text++ → <u>text</u> (marked hiểu HTML thô, vẫn xử lý được markdown lồng bên trong)
 function processUnderline(md){ return md.replace(/\+\+(.+?)\+\+/gs,'<u>$1</u>'); }
 
-function preprocessAll(md){ return processUnderline(processPageBreaks(processRuledLines(preprocessMultiCol(processMcqForPreview(processTikzInMd(md)))))); }
+function preprocessAll(md){ return processUnderline(processPageBreaks(processRuledLines(preprocessMultiCol(processMcqForPreview(mergeMultilineTableRows(processTikzInMd(md))))))); }
 
 // ── TikZ support ──
 // Encode tikz code thành data-src để tránh HTML escaping
@@ -1259,10 +1296,11 @@ function splitMath(text){
 }
 
 function inlineRuns(text){
-  let out='';const re=/(\*\*\*(.+?)\*\*\*|___(.+?)___|~~(.+?)~~|\+\+(.+?)\+\+|\*\*(.+?)\*\*|__(.+?)__|\*([^*\n]+?)\*|_([^_\n]+?)_|`([^`]+?)`|\[([^\]]+?)\]\(([^)]+?)\))/gs;
+  let out='';const re=/(<br\s*\/?>|\*\*\*(.+?)\*\*\*|___(.+?)___|~~(.+?)~~|\+\+(.+?)\+\+|\*\*(.+?)\*\*|__(.+?)__|\*([^*\n]+?)\*|_([^_\n]+?)_|`([^`]+?)`|\[([^\]]+?)\]\(([^)]+?)\))/gsi;
   let last=0,m;re.lastIndex=0;
   while((m=re.exec(text))!==null){if(m.index>last)out+=wrun(text.slice(last,m.index),{});const f=m[0];
-    if(f.startsWith('***')||f.startsWith('___'))out+=wrun(m[2]||m[3],{b:true,i:true});
+    if(/^<br/i.test(f))out+='<w:r><w:br/></w:r>';
+    else if(f.startsWith('***')||f.startsWith('___'))out+=wrun(m[2]||m[3],{b:true,i:true});
     else if(f.startsWith('~~'))out+=wrun(m[4],{strike:true});
     else if(f.startsWith('++')){
       // Gạch chân: đệ quy để KHÔNG mất định dạng lồng bên trong (VD **đậm** trong ++...++)
@@ -2070,7 +2108,7 @@ function buildSlideBgPatternCss(pattern,accRgb){
 // PDF BÀI GIẢNG 16:9 – landscape, viền khung theo màu template
 // ═══════════════════════════════════════════════════════════
 function exportLecturePdf(autoPrint=false){
-  const md=document.getElementById('editor').value;
+  const md=mergeMultilineTableRows(document.getElementById('editor').value);
   const slides=parseMarkdownToSlides(md);
   if(!slides.length){
     setStatus('⚠ Thêm # Tiêu đề để tạo slide bài giảng','err');
@@ -2090,6 +2128,7 @@ function exportLecturePdf(autoPrint=false){
     s=s.replace(/\$\$([^$]+?)\$\$/gs,(m)=>{mx.push(m);return'\x01M'+(mx.length-1)+'\x01';});
     s=s.replace(/\$([^$\n]+?)\$/g,(m)=>{mx.push(m);return'\x01M'+(mx.length-1)+'\x01';});
     s=s.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    s=s.replace(/&lt;br\s*\/?&gt;/gi,'<br>'); // cho phép <br> xuống dòng trong ô bảng
     s=s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
     s=s.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g,'<em>$1</em>');
     s=s.replace(/`([^`]+?)`/g,'<code>$1</code>');
@@ -2343,7 +2382,7 @@ async function downloadPdf(){
 // Slide không có marker nào → xuất bình thường 1 trang.
 // ═══════════════════════════════════════════════════════════
 function exportLecturePdfPause(){
-  const md=document.getElementById('editor').value;
+  const md=mergeMultilineTableRows(document.getElementById('editor').value);
   const slides=parseMarkdownToSlides(md);
   if(!slides.length){
     setStatus('⚠ Thêm # Tiêu đề để tạo slide trình chiếu','err');return;
@@ -2366,6 +2405,7 @@ function exportLecturePdfPause(){
     s=s.replace(/\$\$([^$]+?)\$\$/gs,(m)=>{mx.push(m);return'\x01M'+(mx.length-1)+'\x01';});
     s=s.replace(/\$([^$\n]+?)\$/g,(m)=>{mx.push(m);return'\x01M'+(mx.length-1)+'\x01';});
     s=s.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    s=s.replace(/&lt;br\s*\/?&gt;/gi,'<br>'); // cho phép <br> xuống dòng trong ô bảng
     s=s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
     s=s.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g,'<em>$1</em>');
     s=s.replace(/`([^`]+?)`/g,'<code>$1</code>');
@@ -3111,7 +3151,8 @@ function mathToPlain(s){
     .replace(/\\overline\{([^{}]*)\}/g,'$1̄')
     .replace(/\\cdot\b/g,'·').replace(/\\times\b/g,'×').replace(/\\div\b/g,'÷')
     .replace(/\\pm\b/g,'±').replace(/\\mp\b/g,'∓')
-    .replace(/\\leq\b/g,'≤').replace(/\\geq\b/g,'≥').replace(/\\neq\b/g,'≠')
+    .replace(/\\leq\b/g,'≤').replace(/\\le\b/g,'≤').replace(/\\geq\b/g,'≥').replace(/\\ge\b/g,'≥').replace(/\\neq\b/g,'≠')
+    .replace(/\\mid\b/g,'∣').replace(/\\nmid\b/g,'∤')
     .replace(/\\approx\b/g,'≈').replace(/\\equiv\b/g,'≡').replace(/\\infty\b/g,'∞')
     .replace(/\\alpha\b/g,'α').replace(/\\beta\b/g,'β').replace(/\\gamma\b/g,'γ')
     .replace(/\\delta\b/g,'δ').replace(/\\epsilon\b/g,'ε').replace(/\\zeta\b/g,'ζ')
@@ -3415,7 +3456,7 @@ async function exportDocx(){
   try{
     await new Promise(r=>setTimeout(r,30));
     const s=getSettings();
-    let bodyXml=md2docxBody(processMcqForDocx(md));
+    let bodyXml=md2docxBody(processMcqForDocx(mergeMultilineTableRows(md)));
     const h1Hex=getCssHex('h1-hex','1F3864');
     const h2Hex=getCssHex('h2-hex','2E74B5');
     const h3Hex=getCssHex('h3-hex','5B9BD5');
@@ -3539,7 +3580,12 @@ function buildStylesXml(h1,h2,h3,accent,thBg){
 function settingsXml(){return`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:settings xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:defaultTabStop w:val="720"/><w:compat><w:compatSetting w:name="compatibilityMode" w:uri="http://schemas.microsoft.com/office/word" w:val="15"/></w:compat><m:mathPr><m:mathFont m:val="Cambria Math"/><m:brkBin m:val="before"/><m:brkBinSub m:val="--"/><m:smallFrac m:val="0"/><m:dispDef/><m:lMargin m:val="0"/><m:rMargin m:val="0"/><m:defJc m:val="centerGroup"/><m:wrapIndent m:val="1440"/><m:intLim m:val="subSup"/><m:naryLim m:val="undOvr"/></m:mathPr></w:settings>`}
 
 function numberingXml(){
-  const bl=[0,1,2,3,4].map(i=>`<w:lvl w:ilvl="${i}"><w:start w:val="1"/><w:numFmt w:val="bullet"/><w:lvlText w:val="•"/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="${720+i*360}" w:hanging="360"/></w:pPr><w:rPr><w:rFonts w:ascii="Symbol" w:hAnsi="Symbol" w:hint="default"/></w:rPr></w:lvl>`).join('');
+  // Trước đây ép <w:rFonts Symbol> cho dấu chấm đầu dòng "•" – font Symbol dùng
+  // bảng mã ký tự kiểu cũ (không phải Unicode chuẩn), nhiều trình đọc (LibreOffice,
+  // Google Docs, một số bộ chuyển PDF) không có font này hoặc không map đúng, khiến
+  // bullet hiển thị thành ô vuông rỗng "□". Bỏ ép font Symbol – "•" (U+2022) đã là
+  // ký tự Unicode chuẩn, mọi font thông thường (Times New Roman...) đều có sẵn.
+  const bl=[0,1,2,3,4].map(i=>`<w:lvl w:ilvl="${i}"><w:start w:val="1"/><w:numFmt w:val="bullet"/><w:lvlText w:val="•"/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="${720+i*360}" w:hanging="360"/></w:pPr></w:lvl>`).join('');
   const nl=[0,1,2,3,4].map(i=>`<w:lvl w:ilvl="${i}"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%${i+1}."/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="${720+i*360}" w:hanging="360"/></w:pPr></w:lvl>`).join('');
   return`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="hybridMultilevel"/>${bl}</w:abstractNum><w:abstractNum w:abstractNumId="1"><w:multiLevelType w:val="hybridMultilevel"/>${nl}</w:abstractNum><w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num><w:num w:numId="2"><w:abstractNumId w:val="1"/></w:num></w:numbering>`;
 }
