@@ -216,6 +216,13 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
 /* ── Căn giữa văn bản (:::center ... :::) ── */
 .center-block{text-align:center;margin:.5rem 0}
 .center-block img,.center-block svg{margin-left:auto;margin-right:auto}
+/* ── Huy hiệu đáp án nổi bật (:::badge ... :::) – dùng cho câu trả lời ngắn ── */
+#preview .answer-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:#eef3ff;border:1.5px solid #4c6ef5;border-radius:8px;
+  padding:.45rem 1rem;margin:.4rem 0 1rem;font-weight:700;color:#2b4bcc;
+}
+#preview .answer-badge p{margin:0}
 /* ── Dòng kẻ học sinh (:::kẻ N kiểu) ── */
 .ruled-lines{display:block;margin:2px 0}
 .ruled-lines .rl{display:block}
@@ -295,6 +302,7 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
     <option value="hinhhoc3d">📐 Hình học không gian (có hình vẽ TikZ)</option>
     <option value="decuong">📖 Đề cương ôn tập chương</option>
     <option value="btvn">🏠 Phiếu bài tập về nhà</option>
+    <option value="hethucluong2026">🎯 Đề 3 dạng THPT 2026 – Hệ thức lượng</option>
     <option value="pptslide">🎞 Mẫu slide bài giảng (PPT)</option>
   </select>
 
@@ -607,7 +615,7 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
 <!-- ══════════════════════ STATUS BAR ══════════════════════ -->
 <div class="statusbar">
   <span id="status-msg" class="info">Sẵn sàng</span>
-  <span style="margin-left:auto;opacity:.6">**bold** *italic* `code` <span style="color:#f0883e">++gạch chân++</span> #H1 ##H2 | $toán học$ | $$khối$$ | <span style="color:#58a6ff">:::2</span> / <span style="color:#58a6ff">:::3</span> câu nhiều cột → <span style="color:#58a6ff">:::</span> kết thúc | <span style="color:#79c0ff">:::center</span> căn giữa → <span style="color:#58a6ff">:::</span> kết thúc | <span style="color:#ffa657">===</span> ngắt slide | <span style="color:#e8b877">:::ngắt</span> ngắt trang PDF | <span style="color:#7ee8a2">:::kẻ 5 ngang</span> dòng kẻ | <span style="color:#f0883e">Đáp án: B</span> tự gạch chân TN | <span style="color:#d2a8ff">```tikz</span> hình vẽ</span>
+  <span style="margin-left:auto;opacity:.6">**bold** *italic* `code` <span style="color:#f0883e">++gạch chân++</span> #H1 ##H2 | $toán học$ | $$khối$$ | <span style="color:#58a6ff">:::2</span> / <span style="color:#58a6ff">:::3</span> câu nhiều cột → <span style="color:#58a6ff">:::</span> kết thúc | <span style="color:#79c0ff">:::center</span> căn giữa → <span style="color:#58a6ff">:::</span> kết thúc | <span style="color:#ffa657">===</span> ngắt slide | <span style="color:#e8b877">:::ngắt</span> ngắt trang PDF | <span style="color:#7ee8a2">:::kẻ 5 ngang</span> dòng kẻ | <span style="color:#f0883e">Đáp án: B</span> tự gạch chân TN | <span style="color:#4c6ef5">&lt;Key=21&gt;</span> câu trả lời ngắn | <span style="color:#d2a8ff">```tikz</span> hình vẽ</span>
 </div>
 
 <!-- ══════════════════════ TRỘN ĐỀ MODAL ══════════════════════ -->
@@ -623,13 +631,13 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
       <div class="td-left">
         <div class="td-label">📚 Ngân hàng câu hỏi</div>
         <div class="td-hint">
-          Mỗi câu cách nhau bằng <code>dòng trống</code>. Định dạng:<br>
-          <code>Câu 1. Nội dung câu hỏi (hỗ trợ $toán học$)</code><br>
-          <code>A. Lựa chọn A</code> &nbsp;<code>B. Lựa chọn B</code><br>
-          <code>C. Lựa chọn C</code> &nbsp;<code>D. Lựa chọn D</code><br>
-          <code>Đáp án: A</code>
+          Hỗ trợ <b style="color:#7ee8a2">cả 3 dạng</b> (tự nhận diện, theo cấu trúc THPT 2025/2026):<br>
+          <code>Câu 1. ... A. .. B. .. C. .. D. .. Đáp án: B</code> — trắc nghiệm 1 lựa chọn<br>
+          <code>Câu 2. ... a) .. b) .. c) .. d) .. Đáp án: a, c</code> — đúng/sai 4 ý<br>
+          <code>Câu 3. ... &lt;Key=21&gt;</code> — trả lời ngắn<br>
+          Có thể thêm <code>Lời giải</code> sau đáp án (không bắt buộc).
         </div>
-        <textarea id="qbank-input" placeholder="Dán ngân hàng câu hỏi vào đây..."></textarea>
+        <textarea id="qbank-input" placeholder="Dán ngân hàng câu hỏi vào đây (có thể trộn cả 3 dạng)..."></textarea>
         <div id="qbank-stats">
           <span style="color:#8b949e">Chưa phân tích</span>
         </div>
@@ -675,17 +683,17 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
         <div class="td-sf-group">
           <label>Ký hiệu mã đề</label>
           <div class="td-radio-group">
-            <label class="td-radio"><input type="radio" name="td-codetype" value="alpha" checked> A B C D</label>
-            <label class="td-radio"><input type="radio" name="td-codetype" value="num"> 101 102 …</label>
+            <label class="td-radio"><input type="radio" name="td-codetype" value="alpha"> A B C D</label>
+            <label class="td-radio"><input type="radio" name="td-codetype" value="num" checked> 001 002 …</label>
           </div>
         </div>
         <label class="td-check">
           <input type="checkbox" id="td-shuffle-opts" checked>
-          Trộn thứ tự đáp án (A→B→…)
+          Trộn thứ tự đáp án / phát biểu
         </label>
         <label class="td-check">
           <input type="checkbox" id="td-incl-key" checked>
-          Đính kèm file đáp án (DapAn.docx)
+          Đính kèm file đáp án Excel (DapAn.xlsx)
         </label>
 
         <hr class="td-sep">
@@ -740,6 +748,7 @@ body{--h1-color:#1F3864;--h2-color:#2E74B5;--h3-color:#5B9BD5;--accent:#0550AE;-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <script>
 'use strict';
@@ -962,6 +971,7 @@ function latex2omml(latex,display=false){
 function preprocessMultiCol(md){
   return md
     .replace(/^:::center\s*$/mg, '<div class="center-block">')
+    .replace(/^:::badge\s*$/mg, '<div class="answer-badge">')
     .replace(/^:::([23])\s*$/mg, (_,n)=>`<div class="mc-${n}col">`)
     .replace(/^:::\s*$/mg,'</div>');
 }
@@ -992,29 +1002,103 @@ function processPageBreaks(md){
 //  - Word (md2docxBody): dùng marker <!--plain-table--> đã có sẵn từ tính
 //    năng Trộn đề (buildPlainTable – bảng không viền, layout cố định)
 // ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// CÂU TRẮC NGHIỆM → SLIDE: khi editor chứa các khối "Câu N. + A/B/C/D
+// + Đáp án: X" mà KHÔNG có tiêu đề # / ## nào, parseMarkdownToSlides sẽ
+// bỏ qua toàn bộ nội dung (không tạo được slide). Hàm này tự nhận diện
+// (dùng lại scanMcqBlocks) rồi bọc mỗi câu thành 1 slide "## Câu N" có
+// bảng đáp án 2×2, và đáp án đúng được ẩn/hiện bằng >>> (chế độ Trình
+// chiếu Pause) hoặc tách sang slide riêng bằng === (chế độ PDF bài giảng
+// thường – không có cơ chế pause). Nội dung có sẵn tiêu đề #/## thì giữ
+// nguyên, không đụng vào.
+// ═══════════════════════════════════════════════════════════
+function mcqToSlideMd(md,pauseMode){
+  const blocks=scanMcqBlocks(md);
+  const hasHeading=blocks.some(b=>b.type==='text'&&/^#{1,3}\s+/m.test(b.raw));
+  // Nếu nội dung đã có cấu trúc tiêu đề riêng, không can thiệp – tránh phá hỏng
+  // các slide đã được người dùng tự thiết kế sẵn.
+  if(hasHeading || !blocks.some(b=>b.type==='mcq'||b.type==='short'||b.type==='truefalse')) return md;
+  return blocks.map(b=>{
+    if(b.type==='text')return b.raw;
+    if(b.type==='short'){
+      let reveal=`**🔑 Đáp án: ${b.answer}**`;
+      if(b.solution)reveal+=`\n\nLời giải\n\n${b.solution}`;
+      return `## Câu ${b.num}\n${b.stem}\n\n`+(pauseMode?`>>>\n\n${reveal}\n`:`===\n\n${reveal}\n`);
+    }
+    if(b.type==='truefalse'){
+      const plain=[0,1,2,3].map(idx=>tfLine(b.opts,[],idx)).join('\n');
+      let out=`## Câu ${b.num}\n${b.stem}\n\n${plain}\n`;
+      if(b.correct&&b.correct.length){
+        const letters=['a','b','c','d'];
+        let reveal='**Đáp án:** '+letters.map(l=>`**${l})** ${b.correct.includes(l)?'✅ Đúng':'❌ Sai'}`).join('   ');
+        if(b.solution)reveal+=`\n\nLời giải\n\n${b.solution}`;
+        out+= pauseMode ? `\n>>>\n\n${reveal}\n` : `\n===\n\n${reveal}\n`;
+      }
+      return out;
+    }
+    const letters=['A','B','C','D'];
+    const rows=`<!--plain-table-->\n| **A.** ${b.opts[0]} | **B.** ${b.opts[1]} |\n|---|---|\n| **C.** ${b.opts[2]} | **D.** ${b.opts[3]} |`;
+    let out=`## Câu ${b.num}\n${b.stem}\n\n${rows}\n`;
+    if(b.correct){
+      const idx=letters.indexOf(b.correct);
+      const correctText=idx>=0?b.opts[idx]:'';
+      let reveal=`**✅ Đáp án đúng: ${b.correct}.** ${correctText}`;
+      if(b.solution)reveal+=`\n\nLời giải\n\n${b.solution}`;
+      out+= pauseMode ? `\n>>>\n\n${reveal}\n` : `\n===\n\n${reveal}\n`;
+    }
+    return out;
+  }).join('\n');
+}
 function scanMcqBlocks(md){
   const lines=String(md||'').replace(/\r\n/g,'\n').split('\n');
   const blocks=[];
   let buf=[];
   const flushText=()=>{if(buf.length){blocks.push({type:'text',raw:buf.join('\n')});buf=[];}};
-  // Nhận diện dòng đáp án: chấp nhận cả "A. ..." thường lẫn "**A.** ..." in đậm
-  // chữ cái (và biến thể **A**. , *A.* ...).
+  // Nhận diện dòng đáp án trắc nghiệm 1 lựa chọn: "A. ..." thường lẫn "**A.** ..."
+  // in đậm chữ cái (và biến thể **A**. , *A.* ...).
   const OPT_RE=/^\*{0,2}([A-D])\*{0,2}[.)]\*{0,2}\s*(.*)$/;
+  // Nhận diện dòng phát biểu đúng/sai: "a) ..." (chữ thường, thường dùng dấu ")")
+  const TF_RE=/^\*{0,2}([a-d])\*{0,2}[.)]\*{0,2}\s*(.*)$/;
+  const isSolLabel=t=>/^(?:Lời\s*giải|LỜI\s*GIẢI|Giải\s*thích|Explanation)\s*[:.]?\s*$/i.test(t);
+  const isNewCau=t=>/^\s*(?:\*\*)?Câu\s*\d+/i.test(t);
+  // Gom nhãn "Lời giải" (nếu có) + nội dung theo sau, bắt đầu quét từ dòng start.
+  // Trả về {solution, next} với next là chỉ số dòng kế tiếp cần xử lý.
+  function grabSolution(startIdx){
+    let p=startIdx;
+    while(p<lines.length){
+      const t=lines[p].trim();
+      if(t===''){p++;continue;}
+      if(isSolLabel(t)){
+        p++;
+        const solLines=[];
+        while(p<lines.length){
+          const st=lines[p].trim();
+          if(st===''||isNewCau(st))break;
+          solLines.push(st);p++;
+        }
+        return{solution:solLines.join(' ').trim()||null,next:p};
+      }
+      break;
+    }
+    return{solution:null,next:startIdx};
+  }
   let i=0;
   while(i<lines.length){
     const line=lines[i];
     const qm=line.match(/^\s*(?:\*\*)?Câu\s*(\d+)\s*[.:)]?\*?\*?\s*[:.]?\s*(.*)$/i);
     if(!qm){buf.push(line);i++;continue;}
-    // Gom đề bài: có thể trải nhiều dòng cho tới khi gặp dòng đáp án A./B./C./D.
+    // Gom đề bài: có thể trải nhiều dòng cho tới khi gặp dòng đáp án A-D / a-d,
+    // hoặc dòng <Key=...> (câu trả lời ngắn, không có đáp án).
     let j=i+1,stem=qm[2].trim();
     while(j<lines.length){
       const t=lines[j].trim();
-      if(OPT_RE.test(t))break;
+      if(OPT_RE.test(t)||TF_RE.test(t))break;
+      if(/^<\s*key\s*=\s*[^>]+>\s*$/i.test(t))break;
       if(t===''){j++;continue;}
-      if(/^\s*(?:\*\*)?Câu\s*\d+/i.test(t))break; // gặp câu mới -> không phải khối hợp lệ
+      if(isNewCau(t))break; // gặp câu mới -> không phải khối hợp lệ
       stem+=(stem?' ':'')+t;j++;
     }
-    // Gom đúng 4 đáp án A,B,C,D
+    // 1) Thử trắc nghiệm 1 lựa chọn: đúng 4 đáp án A,B,C,D
     const opts=[];let k=j;
     while(k<lines.length&&opts.length<4){
       const t=lines[k].trim();
@@ -1023,45 +1107,123 @@ function scanMcqBlocks(md){
       else if(t===''){k++;}
       else break;
     }
-    // Dòng "Đáp án: X" tuỳ chọn ngay sau 4 đáp án (giống quy ước ở Trộn đề)
-    // → đáp án đúng sẽ được tự động gạch chân khi xuất.
-    let correct=null,k2=k;
-    while(k2<lines.length){
-      const t=lines[k2].trim();
-      if(t===''){k2++;continue;}
-      const ansM=t.match(/^(?:Đáp\s*án|ĐÁP\s*ÁN|Answer)\s*[:=]\s*([A-D])/i);
-      if(ansM){correct=ansM[1].toUpperCase();k2++;}
+    if(stem&&opts.length===4){
+      // Dòng "Đáp án: X" tuỳ chọn (1 chữ cái) -> gạch chân đáp án đúng khi xuất
+      let correct=null,k2=k;
+      while(k2<lines.length){
+        const t=lines[k2].trim();
+        if(t===''){k2++;continue;}
+        const ansM=t.match(/^(?:Đáp\s*án|ĐÁP\s*ÁN|Answer)\s*[:=]\s*([A-D])/i);
+        if(ansM){correct=ansM[1].toUpperCase();k2++;}
+        break;
+      }
+      const{solution,next:k3}=grabSolution(k2);
+      flushText();
+      blocks.push({type:'mcq',num:qm[1],stem,opts,correct,solution});
+      i=solution?k3:(correct?k2:k);
+      continue;
+    }
+    // 2) Thử dạng Đúng/Sai 4 phát biểu: đúng 4 ý a,b,c,d (mỗi dòng 1 ý riêng,
+    //    KHÔNG xếp 2 cột như trắc nghiệm 1 lựa chọn), có thể nhiều ý đúng cùng lúc.
+    const tfOpts=[];let kt=j;
+    while(kt<lines.length&&tfOpts.length<4){
+      const t=lines[kt].trim();
+      const tm=t.match(TF_RE);
+      if(tm){tfOpts.push(tm[2]);kt++;}
+      else if(t===''){kt++;}
+      else break;
+    }
+    if(stem&&tfOpts.length===4){
+      // Dòng "Đáp án: a, c" tuỳ chọn (danh sách chữ cái đúng, phân cách bởi dấu phẩy)
+      let tfCorrect=[],kt2=kt;
+      while(kt2<lines.length){
+        const t=lines[kt2].trim();
+        if(t===''){kt2++;continue;}
+        const am=t.match(/^(?:Đáp\s*án|ĐÁP\s*ÁN|Answer)\s*[:=]\s*([a-d](?:\s*,\s*[a-d])*)/i);
+        if(am){tfCorrect=am[1].split(',').map(s=>s.trim().toLowerCase());kt2++;}
+        break;
+      }
+      const{solution:tfSolution,next:kt3}=grabSolution(kt2);
+      flushText();
+      blocks.push({type:'truefalse',num:qm[1],stem,opts:tfOpts,correct:tfCorrect,solution:tfSolution});
+      i=tfSolution?kt3:(tfCorrect.length?kt2:kt);
+      continue;
+    }
+    // 3) Thử dạng "câu trả lời ngắn": <Key=value> ngay sau đề bài
+    let keyVal=null,k4=j;
+    while(k4<lines.length){
+      const t=lines[k4].trim();
+      if(t===''){k4++;continue;}
+      const km=t.match(/^<\s*key\s*=\s*([^>]+)>\s*$/i);
+      if(km){keyVal=km[1].trim();k4++;}
       break;
     }
-    if(stem&&opts.length===4){
+    if(stem&&keyVal!==null){
+      const{solution:shortSolution,next:k5}=grabSolution(k4);
       flushText();
-      blocks.push({type:'mcq',num:qm[1],stem,opts,correct});
-      i=correct?k2:k;
+      blocks.push({type:'short',num:qm[1],stem,answer:keyVal,solution:shortSolution});
+      i=shortSolution?k5:k4;
     }else{
-      buf.push(line);i++; // không đủ 4 đáp án -> giữ nguyên dòng gốc, không nhận diện
+      buf.push(line);i++; // không khớp dạng nào -> giữ nguyên dòng gốc, không nhận diện
     }
   }
   flushText();
   return blocks;
 }
 // Bọc ++...++ quanh đáp án đúng (letterIdx 0=A,1=B,2=C,3=D) để tự động gạch chân
-function underlineIfCorrect(opts, correct, idx){
+// labelOnly=true: chỉ gạch chân nhãn "A." (dùng cho Word) – tránh lỗi gạch chân
+// bị đứt đoạn khi đáp án chứa công thức toán $...$ (Word xử lý văn bản và công
+// thức thành 2 đoạn OOXML tách rời, nên ++...++ bọc quanh cả công thức sẽ bị
+// "cắt" giữa chừng, không tìm được cặp đóng-mở trong cùng đoạn văn bản thường).
+function underlineIfCorrect(opts, correct, idx, labelOnly){
   const letter=String.fromCharCode(65+idx);
-  const cell=`**${letter}.** ${opts[idx]}`;
-  return (correct&&correct===letter) ? `++${cell}++` : cell;
+  const isCorrect=correct&&correct===letter;
+  if(!isCorrect)return `**${letter}.** ${opts[idx]}`;
+  return labelOnly ? `++**${letter}.**++ ${opts[idx]}` : `++**${letter}.** ${opts[idx]}++`;
+}
+// Dựng 1 dòng phát biểu đúng/sai (a,b,c,d), kèm nhãn ✅ Đúng / ❌ Sai nếu đã biết
+// đáp án (mảng correctList chứa các chữ cái đúng, ví dụ ['a','c']).
+function tfLine(opts, correctList, idx, showMark){
+  const letter=String.fromCharCode(97+idx); // a,b,c,d
+  const isTrue=correctList&&correctList.includes(letter);
+  const mark=(showMark!==false&&correctList&&correctList.length) ? (isTrue?' — ✅ **Đúng**':' — ❌ Sai') : '';
+  // Chỉ gạch chân đúng ký tự chữ cái (a/b/c/d), KHÔNG gạch cả dấu ngoặc ")"
+  // (và không cần gạch chân toàn phát biểu) khi phát biểu đó đúng.
+  const label=isTrue ? `++**${letter}**++)` : `**${letter})**`;
+  return `${label} ${opts[idx]}${mark}`;
 }
 function processMcqForPreview(md){
   return scanMcqBlocks(md).map(b=>{
     if(b.type==='text')return b.raw;
+    if(b.type==='short'){
+      const sol=b.solution?`\nLời giải\n\n${b.solution}\n`:'';
+      return `**Câu ${b.num}:** ${b.stem}\n\n:::badge\n🔑 **Đáp án: ${b.answer}**\n:::\n${sol}`;
+    }
+    if(b.type==='truefalse'){
+      const lines4=[0,1,2,3].map(idx=>tfLine(b.opts,b.correct,idx)).join('\n');
+      const sol=b.solution?`\nLời giải\n\n${b.solution}\n`:'';
+      return `**Câu ${b.num}:** ${b.stem}\n\n${lines4}\n${sol}`;
+    }
     const c=[0,1,2,3].map(idx=>underlineIfCorrect(b.opts,b.correct,idx));
-    return `**Câu ${b.num}:** ${b.stem}\n\n<div class="mcq-table-wrap">\n\n| ${c[0]} | ${c[1]} |\n|---|---|\n| ${c[2]} | ${c[3]} |\n\n</div>\n`;
+    const sol=b.solution?`\nLời giải\n\n${b.solution}\n`:'';
+    return `**Câu ${b.num}:** ${b.stem}\n\n<div class="mcq-table-wrap">\n\n| ${c[0]} | ${c[1]} |\n|---|---|\n| ${c[2]} | ${c[3]} |\n\n</div>\n${sol}`;
   }).join('\n');
 }
 function processMcqForDocx(md){
   return scanMcqBlocks(md).map(b=>{
     if(b.type==='text')return b.raw;
-    const c=[0,1,2,3].map(idx=>underlineIfCorrect(b.opts,b.correct,idx));
-    return `**Câu ${b.num}:** ${b.stem}\n\n<!--plain-table-->\n| ${c[0]} | ${c[1]} |\n|---|---|\n| ${c[2]} | ${c[3]} |\n`;
+    if(b.type==='short'){
+      const sol=b.solution?`\nLời giải\n\n${b.solution}\n`:'';
+      return `**Câu ${b.num}:** ${b.stem}\n\n**<Key=${b.answer}>**\n${sol}`;
+    }
+    if(b.type==='truefalse'){
+      const lines4=[0,1,2,3].map(idx=>tfLine(b.opts,b.correct,idx,false)).join('\n');
+      const sol=b.solution?`\nLời giải\n\n${b.solution}\n`:'';
+      return `**Câu ${b.num}:** ${b.stem}\n\n${lines4}\n${sol}`;
+    }
+    const c=[0,1,2,3].map(idx=>underlineIfCorrect(b.opts,b.correct,idx,true));
+    const sol=b.solution?`\nLời giải\n\n${b.solution}\n`:'';
+    return `**Câu ${b.num}:** ${b.stem}\n\n<!--plain-table-->\n| ${c[0]} | ${c[1]} |\n|---|---|\n| ${c[2]} | ${c[3]} |\n${sol}`;
   }).join('\n');
 }
 
@@ -1392,6 +1554,19 @@ function md2docxBody(md){
       xml+=md2docxBody(blockLines.join('\n'))
         .replace(/<w:pPr>/g,'<w:pPr><w:jc w:val="center"/>')
         .replace(/<w:p>(?!<w:pPr>)/g,'<w:p><w:pPr><w:jc w:val="center"/></w:pPr>');
+      continue;
+    }
+    // Khối huy hiệu đáp án :::badge ... ::: (dùng cho câu trả lời ngắn) – khung
+    // viền + tô nền màu nhạt, cùng kỹ thuật đệ quy + tiêm pPr như :::center ở trên.
+    if(line.trim()===':::badge'){
+      i++;
+      const blockLines=[];
+      while(i<lines.length&&lines[i].trim()!==':::'){blockLines.push(lines[i]);i++;}
+      if(i<lines.length)i++; // consume :::
+      const badgePPr='<w:pBdr><w:top w:val="single" w:sz="8" w:space="6" w:color="4C6EF5"/><w:left w:val="single" w:sz="8" w:space="8" w:color="4C6EF5"/><w:bottom w:val="single" w:sz="8" w:space="6" w:color="4C6EF5"/><w:right w:val="single" w:sz="8" w:space="8" w:color="4C6EF5"/></w:pBdr><w:shd w:val="clear" w:color="auto" w:fill="EEF3FF"/><w:spacing w:before="80" w:after="160"/>';
+      xml+=md2docxBody(blockLines.join('\n'))
+        .replace(/<w:pPr>/g,'<w:pPr>'+badgePPr)
+        .replace(/<w:p>(?!<w:pPr>)/g,'<w:p><w:pPr>'+badgePPr+'</w:pPr>');
       continue;
     }
     // Multi-column block :::2 or :::3 ... :::
@@ -1883,6 +2058,14 @@ tr{page-break-inside:avoid}
 /* ── Căn giữa văn bản (:::center ... :::) ── */
 .center-block{text-align:center;margin:${sp.p} 0}
 .center-block img,.center-block svg{margin-left:auto;margin-right:auto}
+/* ── Huy hiệu đáp án nổi bật (:::badge ... :::) – dùng cho câu trả lời ngắn ── */
+.answer-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:#eef3ff;border:1.5px solid #4c6ef5;border-radius:8px;
+  padding:.45rem 1rem;margin:.4rem 0 1rem;font-weight:700;color:#2b4bcc;
+  page-break-inside:avoid;
+}
+.answer-badge p{margin:0}
 
 /* ── Dòng kẻ học sinh ── */
 .ruled-lines{display:block;margin:2px 0}
@@ -2108,7 +2291,7 @@ function buildSlideBgPatternCss(pattern,accRgb){
 // PDF BÀI GIẢNG 16:9 – landscape, viền khung theo màu template
 // ═══════════════════════════════════════════════════════════
 function exportLecturePdf(autoPrint=false){
-  const md=mergeMultilineTableRows(document.getElementById('editor').value);
+  const md=mcqToSlideMd(mergeMultilineTableRows(document.getElementById('editor').value),false);
   const slides=parseMarkdownToSlides(md);
   if(!slides.length){
     setStatus('⚠ Thêm # Tiêu đề để tạo slide bài giảng','err');
@@ -2137,11 +2320,18 @@ function exportLecturePdf(autoPrint=false){
   }
 
   function buildBody(lines){
-    let h='',dmBuf=null,tblBuf=[],colBuf=null,colN=2;
+    let h='',dmBuf=null,tblBuf=[],colBuf=null,colN=2,tblPlain=false;
     function flushTbl(){
-      if(!tblBuf.length)return;
+      if(!tblBuf.length){tblPlain=false;return;}
       const rows=tblBuf.splice(0);
       const parseRow=l=>l.replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+      if(tblPlain){
+        const allRows=[parseRow(rows[0]),...rows.slice(2).filter(l=>/\|/.test(l)).map(parseRow)];
+        let t='<table class="sl-mcq-tbl"><tbody>';
+        allRows.forEach(dr=>{t+='<tr>';dr.forEach(c=>{t+=`<td>${mdL(c)}</td>`;});t+='</tr>';});
+        t+='</tbody></table>';
+        h+=t;tblPlain=false;return;
+      }
       const headers=parseRow(rows[0]);
       const dataRows=rows.slice(2).filter(l=>/\|/.test(l)).map(parseRow);
       let t='<table class="sl-tbl"><thead><tr>';
@@ -2168,6 +2358,7 @@ function exportLecturePdf(autoPrint=false){
         continue;
       }
       if(t==='$$'){flushTbl();dmBuf='';continue;}
+      if(t==='<!--plain-table-->'){flushTbl();tblPlain=true;continue;}
       // table row
       if(t.startsWith('|')){tblBuf.push(t);continue;}
       else{flushTbl();}
@@ -2310,6 +2501,9 @@ code{background:#f0f2f5;padding:0 1.5mm;border-radius:1mm;font-size:6mm;font-fam
 .sl-tbl th,.sl-tbl td{border:1px solid #bbc4cf;padding:1mm 3.5mm;text-align:left;vertical-align:middle}
 .sl-tbl th{background:${h1c};color:#fff;font-weight:700}
 .sl-tbl tr:nth-child(even) td{background:#f2f6fb}
+/* Bảng đáp án trắc nghiệm A/B/C/D (<!--plain-table-->) – không viền, không tô nền, mọi ô đồng màu chữ */
+.sl-mcq-tbl{border-collapse:collapse;width:100%;margin:2mm 0;table-layout:fixed}
+.sl-mcq-tbl td{border:none;background:none;padding:1.5mm 4mm 1.5mm 0;text-align:left;vertical-align:top;color:inherit;font-size:6.5mm;line-height:1.35;width:50%}
 /* Chia cột nội dung :::2 / :::3 ... ::: */
 .sl-mcol{column-gap:8mm;margin:1.5mm 0}
 .sl-mcol .para,.sl-mcol .bul,.sl-mcol .dm,.sl-mcol .sl-tbl,.sl-mcol .h3{break-inside:avoid}
@@ -2382,7 +2576,7 @@ async function downloadPdf(){
 // Slide không có marker nào → xuất bình thường 1 trang.
 // ═══════════════════════════════════════════════════════════
 function exportLecturePdfPause(){
-  const md=mergeMultilineTableRows(document.getElementById('editor').value);
+  const md=mcqToSlideMd(mergeMultilineTableRows(document.getElementById('editor').value),true);
   const slides=parseMarkdownToSlides(md);
   if(!slides.length){
     setStatus('⚠ Thêm # Tiêu đề để tạo slide trình chiếu','err');return;
@@ -2414,11 +2608,18 @@ function exportLecturePdfPause(){
   }
 
   function buildBody(lines){
-    let h='',dmBuf=null,tblBuf=[],colBuf=null,colN=2;
+    let h='',dmBuf=null,tblBuf=[],colBuf=null,colN=2,tblPlain=false;
     function flushTbl(){
-      if(!tblBuf.length)return;
+      if(!tblBuf.length){tblPlain=false;return;}
       const rows=tblBuf.splice(0);
       const parseRow=l=>l.replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+      if(tblPlain){
+        const allRows=[parseRow(rows[0]),...rows.slice(2).filter(l=>/\|/.test(l)).map(parseRow)];
+        let t='<table class="sl-mcq-tbl"><tbody>';
+        allRows.forEach(dr=>{t+='<tr>';dr.forEach(c=>{t+=`<td>${mdL(c)}</td>`;});t+='</tr>';});
+        t+='</tbody></table>';
+        h+=t;tblPlain=false;return;
+      }
       const headers=parseRow(rows[0]);
       const dataRows=rows.slice(2).filter(l=>/\|/.test(l)).map(parseRow);
       let t='<table class="sl-tbl"><thead><tr>';
@@ -2443,6 +2644,7 @@ function exportLecturePdfPause(){
         else{dmBuf+=line+'\n';}continue;
       }
       if(t==='$$'){flushTbl();dmBuf='';continue;}
+      if(t==='<!--plain-table-->'){flushTbl();tblPlain=true;continue;}
       // table row
       if(t.startsWith('|')){tblBuf.push(t);continue;}
       else{flushTbl();}
@@ -2685,6 +2887,9 @@ code{background:#f0f2f5;padding:0 1.5mm;border-radius:1mm;font-size:6mm;font-fam
 .sl-tbl th,.sl-tbl td{border:1px solid #bbc4cf;padding:1mm 3.5mm;text-align:left;vertical-align:middle}
 .sl-tbl th{background:${h1c};color:#fff;font-weight:700}
 .sl-tbl tr:nth-child(even) td{background:#f2f6fb}
+/* Bảng đáp án trắc nghiệm A/B/C/D (<!--plain-table-->) – không viền, không tô nền, mọi ô đồng màu chữ */
+.sl-mcq-tbl{border-collapse:collapse;width:100%;margin:2mm 0;table-layout:fixed}
+.sl-mcq-tbl td{border:none;background:none;padding:1.5mm 4mm 1.5mm 0;text-align:left;vertical-align:top;color:inherit;font-size:6.5mm;line-height:1.35;width:50%}
 /* Chia cột nội dung :::2 / :::3 ... ::: */
 .sl-mcol{column-gap:8mm;margin:1.5mm 0}
 .sl-mcol .para,.sl-mcol .bul,.sl-mcol .dm,.sl-mcol .sl-tbl,.sl-mcol .h3{break-inside:avoid}
@@ -3744,6 +3949,7 @@ function buildQuickBar(){
       {lb:'[half]',     tt:'Trống 1/2 bên phải khi in PDF trình chiếu', act:()=>quickIns('[half]\n',{mode:'line'})},
       {lb:':::ngắt',    tt:'Ngắt trang khi in PDF thường (đề/tài liệu)', act:()=>quickIns(':::ngắt\n',{mode:'line'})},
       {lb:'⇔ center',   tt:'Căn giữa văn bản (:::center ... :::)',       act:()=>quickIns(':::center\n|\n:::\n',{mode:'inline'})},
+      {lb:'🔑 TL ngắn',  tt:'Chèn mẫu câu trả lời ngắn (Câu N. ... <Key=...>)', act:()=>quickIns('Câu 1. |\n<Key=>\n',{mode:'inline'})},
     ]},
     {lbl:'Slide', items:[
       {lb:'# Tiêu đề',  tt:'Tiêu đề slide section (# …)',    act:()=>quickIns('# ',{mode:'line'})},
@@ -3995,6 +4201,7 @@ function loadTemplate(val){
   else if(val==='hinhhoc3d')document.getElementById('editor').value=SAMPLE_HINHHOC3D;
   else if(val==='decuong')document.getElementById('editor').value=SAMPLE_DECUONG;
   else if(val==='btvn')document.getElementById('editor').value=SAMPLE_BTVN;
+  else if(val==='hethucluong2026')document.getElementById('editor').value=SAMPLE_HTL2026;
   updatePreview();
 }
 
@@ -4334,50 +4541,15 @@ document.getElementById('tronde-overlay').addEventListener('click',function(e){
   if(e.target===this)closeTronDeModal();
 });
 
-/* ── Question bank parser ──
-   Accepts blocks separated by blank lines.
-   Each block:
-     Câu N. [stem…]          (optional label)
-     A. / A) / A: [option]
-     B. ...
-     Đáp án: X  (or ĐÁP ÁN: X, Answer: X)
+/* ── Question bank parser V2 ──
+   Dùng chung bộ quét scanMcqBlocks (đã hỗ trợ cả 3 dạng: trắc nghiệm 1 lựa
+   chọn A-D, đúng/sai 4 ý a-d, trả lời ngắn <Key=...>) — cùng cú pháp với
+   Editor chính, không cần học thêm quy ước riêng cho Trộn đề.
 */
 function parseQuestionBank(text){
-  const questions=[];
-  // Normalise line endings
-  const blocks=text.replace(/\r\n/g,'\n').trim().split(/\n{2,}/);
-  for(const block of blocks){
-    const lines=block.trim().split('\n').map(l=>l.trim()).filter(l=>l);
-    if(!lines.length)continue;
-    // First non-option line = stem (strip "Câu N." prefix)
-    let stem='', options=[], correct='A';
-    let inOptions=false;
-    for(const line of lines){
-      // Answer key line
-      const ansM=line.match(/^(?:Đáp\s*án|ĐÁP\s*ÁN|Answer)\s*[:=]\s*([A-D])/i);
-      if(ansM){correct=ansM[1].toUpperCase();continue;}
-      // Option line: A. / A) / A: followed by text
-      const optM=line.match(/^([A-D])[.):\s]\s*(.*)/i);
-      if(optM){
-        inOptions=true;
-        options.push({letter:optM[1].toUpperCase(), text:optM[2].trim()});
-        continue;
-      }
-      // Stem continuation or first stem line
-      if(!inOptions){
-        const stemLine=line.replace(/^Câu\s+\d+\s*[:.]\s*/i,'').trim();
-        stem=stem?stem+' '+stemLine:stemLine;
-      }
-    }
-    // Need at least 2 options and a non-empty stem
-    if(stem&&options.length>=2){
-      // Pad to 4 options if needed (rare edge case)
-      while(options.length<4)options.push({letter:String.fromCharCode(65+options.length),text:'—'});
-      options=options.slice(0,4); // cap at 4
-      questions.push({stem,options,correct,originalIndex:questions.length});
-    }
-  }
-  return questions;
+  return scanMcqBlocks(text)
+    .filter(b=>b.type==='mcq'||b.type==='truefalse'||b.type==='short')
+    .map((b,i)=>({...b, originalIndex:i}));
 }
 
 /* ── Fisher-Yates shuffle (pure, returns new array) ── */
@@ -4390,27 +4562,48 @@ function fisherYates(arr){
   return a;
 }
 
+/* ── Trộn đáp án/phát biểu bên trong 1 câu hỏi (giữ nguyên câu trả lời ngắn –
+   không có gì để trộn). Trả về bản sao câu hỏi với opts + correct đã cập nhật. ── */
+function shuffleQuestionBlock(block, shuffleOpts){
+  if(!shuffleOpts||block.type==='short')return block;
+  if(block.type==='mcq'){
+    const order=fisherYates([0,1,2,3]);
+    const newOpts=order.map(i=>block.opts[i]);
+    let newCorrect=null;
+    if(block.correct){
+      const origIdx=block.correct.charCodeAt(0)-65; // A→0
+      const newPos=order.indexOf(origIdx);
+      newCorrect=String.fromCharCode(65+newPos);
+    }
+    return{...block, opts:newOpts, correct:newCorrect};
+  }
+  if(block.type==='truefalse'){
+    const order=fisherYates([0,1,2,3]);
+    const newOpts=order.map(i=>block.opts[i]);
+    const letters=['a','b','c','d'];
+    const newCorrect=[];
+    order.forEach((origIdx,newIdx)=>{
+      if(block.correct&&block.correct.includes(letters[origIdx]))newCorrect.push(letters[newIdx]);
+    });
+    return{...block, opts:newOpts, correct:newCorrect};
+  }
+  return block;
+}
+
 /* ── Create one exam variant ──
-   Returns array of question objects with variant-specific numbering.
-   If shuffleOpts=true, answer options are also shuffled and correct letter updated.
+   Nhóm câu hỏi theo TỪNG DẠNG riêng (không xen kẽ) – giống cấu trúc đề thi
+   THPT Quốc gia: Phần I (trắc nghiệm ABCD) → Phần II (đúng/sai abcd) →
+   Phần III (trả lời ngắn). Trộn thứ tự RIÊNG trong từng phần (không trộn
+   lẫn giữa các dạng), và (nếu shuffleOpts) trộn luôn đáp án/phát biểu bên
+   trong từng câu. Trả về {mcq:[...], truefalse:[...], short:[...]}.
 */
 function createVariant(questions, shuffleOpts){
-  const shuffled=fisherYates(questions);
-  return shuffled.map((q,vi)=>{
-    if(!shuffleOpts){
-      return{...q, variantNum:vi+1};
-    }
-    // Shuffle options and remap correct answer
-    const newOpts=fisherYates(q.options).map((o,i)=>({
-      letter:String.fromCharCode(65+i),
-      text:o.text,
-      _origLetter:o.letter
-    }));
-    // Find which new letter holds the original correct answer
-    const origCorrectText=q.options.find(o=>o.letter===q.correct)?.text;
-    const newCorrect=newOpts.find(o=>o.text===origCorrectText)?.letter||'A';
-    return{...q, options:newOpts, correct:newCorrect, variantNum:vi+1};
-  });
+  const byType=t=>fisherYates(questions.filter(q=>q.type===t)).map(q=>shuffleQuestionBlock(q,shuffleOpts));
+  return{
+    mcq:byType('mcq'),
+    truefalse:byType('truefalse'),
+    short:byType('short'),
+  };
 }
 
 /* ── Phần đầu đề thi (tiêu đề căn giữa + khung Mã đề nổi bật + dòng Họ tên/SBD) ──
@@ -4426,7 +4619,7 @@ function buildExamHeaderXml(settings, code, totalQ, accentHex){
   if(subject)metaParts.push(`Môn: ${subject}`);
   if(grade)metaParts.push(`Lớp: ${grade}`);
   if(time)metaParts.push(`Thời gian: ${time} phút`);
-  metaParts.push(`${totalQ} câu trắc nghiệm`);
+  metaParts.push(`${totalQ} câu hỏi`);
   const metaLine=metaParts.join('   –   ');
 
   const run=(text,rpr)=>`<w:r><w:rPr>${rpr}</w:rPr><w:t xml:space="preserve">${xEsc(text)}</w:t></w:r>`;
@@ -4448,60 +4641,92 @@ function buildExamHeaderXml(settings, code, totalQ, accentHex){
   return xml;
 }
 
-/* ── Convert variant questions to markdown string for md2docxBody ── */
-function variantToMarkdown(variantQs, settings, code){
+/* ── Convert variant (dạng {mcq,truefalse,short}) sang markdown cho md2docxBody ──
+   Chia 3 mục riêng biệt, MỖI MỤC ĐÁNH SỐ LẠI TỪ CÂU 1 – đúng cấu trúc đề thi
+   THPT Quốc gia (Phần I / Phần II / Phần III). Đề thi KHÔNG lộ đáp án (chỉ
+   hiện trong file DapAn.xlsx riêng). ── */
+function variantToMarkdown(variantParts){
   const lines=[];
-  variantQs.forEach((q,i)=>{
-    // Question stem — preserve math inline
-    lines.push(`**Câu ${i+1}.** ${q.stem}`);
+  if(variantParts.mcq.length){
+    lines.push('## PHẦN I. Câu trắc nghiệm nhiều phương án lựa chọn');
+    lines.push('*Thí sinh trả lời từ câu 1 đến câu '+variantParts.mcq.length+'. Mỗi câu chỉ chọn một phương án đúng.*');
     lines.push('');
-    // Đáp án A/B/C/D: bảng KHÔNG VIỀN, cột rộng bằng nhau → thẳng hàng tuyệt đối
-    const [oA,oB,oC,oD]=q.options;
-    lines.push('<!--plain-table-->');
-    lines.push(`| **A.** ${oA.text} | **B.** ${oB.text} |`);
-    lines.push('|---|---|');
-    lines.push(`| **C.** ${oC.text} | **D.** ${oD.text} |`);
+    variantParts.mcq.forEach((q,i)=>{
+      lines.push(`**Câu ${i+1}.** ${q.stem}`);
+      lines.push('');
+      // Đáp án A/B/C/D: bảng KHÔNG VIỀN, cột rộng bằng nhau → thẳng hàng tuyệt đối
+      lines.push('<!--plain-table-->');
+      lines.push(`| **A.** ${q.opts[0]} | **B.** ${q.opts[1]} |`);
+      lines.push('|---|---|');
+      lines.push(`| **C.** ${q.opts[2]} | **D.** ${q.opts[3]} |`);
+      lines.push('');
+    });
+  }
+  if(variantParts.truefalse.length){
+    lines.push('## PHẦN II. Câu trắc nghiệm đúng sai');
+    lines.push('*Thí sinh trả lời từ câu 1 đến câu '+variantParts.truefalse.length+'. Trong mỗi ý a), b), c), d), chọn đúng hoặc sai.*');
     lines.push('');
-  });
+    variantParts.truefalse.forEach((q,i)=>{
+      lines.push(`**Câu ${i+1}.** ${q.stem}`);
+      ['a','b','c','d'].forEach((letter,idx)=>{
+        lines.push(`**${letter})** ${q.opts[idx]}`);
+      });
+      lines.push('');
+    });
+  }
+  if(variantParts.short.length){
+    lines.push('## PHẦN III. Câu trắc nghiệm trả lời ngắn');
+    lines.push('*Thí sinh trả lời từ câu 1 đến câu '+variantParts.short.length+'.*');
+    lines.push('');
+    variantParts.short.forEach((q,i)=>{
+      lines.push(`**Câu ${i+1}.** ${q.stem}`);
+      lines.push('');
+      lines.push('**Trả lời:** ..........................................................');
+      lines.push('');
+    });
+  }
 
   return lines.join('\n');
 }
 
-/* ── Build answer-key markdown ── */
-function buildAnswerKeyMd(variants, originalCount){
-  const lines=[];
-  lines.push('# BẢNG ĐÁP ÁN');
-  lines.push('');
-
-  // Summary table: original question# vs answer per variant
-  const codes=variants.map(v=>v.code);
-  lines.push('| Câu gốc | '+codes.map(c=>`Mã ${c}`).join(' | ')+' |');
-  lines.push('|:---:|'+codes.map(()=>':---:').join('|')+'|');
-
-  for(let i=0;i<originalCount;i++){
-    const row=variants.map(v=>{
-      const vq=v.questions.find(q=>q.originalIndex===i);
-      return vq?vq.correct:'—';
-    });
-    lines.push(`| ${i+1} | ${row.join(' | ')} |`);
+/* ── Đáp án 1 câu hỏi dạng text ngắn gọn (dùng cho ô Excel) ──
+   - Trắc nghiệm 1 lựa chọn: 1 chữ cái (VD "A")
+   - Đúng/Sai: chuỗi 4 ký tự Đ/S liền nhau theo thứ tự a,b,c,d (VD "ĐSĐS")
+   - Trả lời ngắn: giữ nguyên giá trị đã nhập ở <Key=...> */
+function answerCellText(q){
+  if(q.type==='mcq')return q.correct||'';
+  if(q.type==='truefalse'){
+    const letters=['a','b','c','d'];
+    return letters.map(l=>(q.correct||[]).includes(l)?'Đ':'S').join('');
   }
-  lines.push('');
-  lines.push('---');
-  lines.push('');
-
-  // Per-variant detail table
-  variants.forEach(v=>{
-    lines.push(`## Mã đề: ${v.code}`);
-    lines.push('');
-    lines.push('| Câu | Câu gốc | Đáp án |');
-    lines.push('|:---:|:---:|:---:|');
-    v.questions.forEach((q,i)=>{
-      lines.push(`| ${i+1} | ${q.originalIndex+1} | **${q.correct}** |`);
+  if(q.type==='short')return q.answer||'';
+  return '';
+}
+function questionTypeLabel(t){
+  return t==='mcq'?'Trắc nghiệm 1 lựa chọn':t==='truefalse'?'Đúng/Sai':'Trả lời ngắn';
+}
+/* ── Build answer-key Excel (.xlsx) bằng SheetJS ──
+   Bảng ngang: cột đầu "Câu" đánh số LIÊN TỤC 1..N theo đúng thứ tự trong đề
+   thi (Phần I nối tiếp Phần II nối tiếp Phần III, không reset số), mỗi mã đề
+   là 1 cột riêng – đúng định dạng file cần điền cho phần mềm chấm/quét đáp án. */
+function buildAnswerKeyXlsxBlob(variants){
+  const totalQ=variants[0]?(variants[0].questions.mcq.length+variants[0].questions.truefalse.length+variants[0].questions.short.length):0;
+  const header=['Câu',...variants.map(v=>v.code)];
+  const rows=[header];
+  for(let i=0;i<totalQ;i++){
+    const row=[i+1];
+    variants.forEach(v=>{
+      const all=[...v.questions.mcq,...v.questions.truefalse,...v.questions.short];
+      row.push(all[i]?answerCellText(all[i]):'');
     });
-    lines.push('');
-  });
-
-  return lines.join('\n');
+    rows.push(row);
+  }
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:6},...variants.map(()=>({wch:10}))];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Đáp án');
+  const arrbuf=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  return new Blob([arrbuf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
 }
 
 /* ── Analyze button ── */
@@ -4515,10 +4740,12 @@ function analyzeTronDe(){
     btn.disabled=true;
     return;
   }
-  // Count how many have Đáp án declared
-  const withAns=qs.filter(q=>q.correct).length;
-  stats.innerHTML=`<span style="color:#3fb950">✅ ${qs.length} câu hỏi hợp lệ</span>`+
-    (withAns<qs.length?` &ensp;<span style="color:#e3b341">⚠ ${qs.length-withAns} câu chưa có đáp án (mặc định A)</span>`:'');
+  const nMcq=qs.filter(q=>q.type==='mcq').length;
+  const nTf=qs.filter(q=>q.type==='truefalse').length;
+  const nShort=qs.filter(q=>q.type==='short').length;
+  const withAns=qs.filter(q=>q.type==='mcq'?!!q.correct:q.type==='truefalse'?!!(q.correct&&q.correct.length):!!q.answer).length;
+  stats.innerHTML=`<span style="color:#3fb950">✅ ${qs.length} câu hợp lệ</span> &nbsp;(${nMcq} trắc nghiệm · ${nTf} đúng/sai · ${nShort} trả lời ngắn)`+
+    (withAns<qs.length?`<br><span style="color:#e3b341">⚠ ${qs.length-withAns} câu chưa có đáp án</span>`:'');
   btn.disabled=false;
   document.getElementById('td-progress').textContent='Sẵn sàng tạo đề!';
 }
@@ -4551,7 +4778,7 @@ async function exportTronDe(){
 
   // Build variant code list
   const alphaCodes=['A','B','C','D','E','F'];
-  const numCodes=['101','102','103','104','105','106'];
+  const numCodes=['001','002','003','004','005','006'];
   const codes=(codeType==='num'?numCodes:alphaCodes).slice(0,nVars);
 
   // Create variants
@@ -4622,8 +4849,9 @@ async function exportTronDe(){
       const v=variants[i];
       prog.textContent=`Đang tạo mã đề ${v.code}… (${i+1}/${variants.length})`;
       await new Promise(r=>setTimeout(r,20));
-      const md=variantToMarkdown(v.questions, settings, v.code);
-      const examHeaderXml=buildExamHeaderXml(settings, v.code, v.questions.length, accentHex);
+      const md=variantToMarkdown(v.questions);
+      const totalQ=v.questions.mcq.length+v.questions.truefalse.length+v.questions.short.length;
+      const examHeaderXml=buildExamHeaderXml(settings, v.code, totalQ, accentHex);
       const blob=await makeDocxBlob(md,{
         ...wordSettings,
         hdrSub:settings.subject?`Môn: ${settings.subject}${settings.grade?' – Lớp: '+settings.grade:''}`:''
@@ -4632,11 +4860,10 @@ async function exportTronDe(){
     }
 
     if(inclKey){
-      prog.textContent='Đang tạo file đáp án…';
+      prog.textContent='Đang tạo file đáp án Excel…';
       await new Promise(r=>setTimeout(r,20));
-      const keyMd=buildAnswerKeyMd(variants, questions.length);
-      const keyBlob=await makeDocxBlob(keyMd,{...wordSettings,hdrMain:settings.school||'',hdrSub:'BẢNG ĐÁP ÁN – LƯU HÀNH NỘI BỘ'});
-      masterZip.file('DapAn.docx',keyBlob);
+      const keyBlob=buildAnswerKeyXlsxBlob(variants);
+      masterZip.file('DapAn.xlsx',keyBlob);
     }
 
     prog.textContent='Đang nén ZIP…';
@@ -5054,6 +5281,79 @@ const SAMPLE_BTVN=`## TRƯỜNG THPT .................. – TỔ TOÁN
 
 *Phụ huynh ký xác nhận đã kiểm tra:* .......................................................`;
 
+const SAMPLE_HTL2026=`## TRƯỜNG THPT .................. – TỔ TOÁN
+# ĐỀ KIỂM TRA: HỆ THỨC LƯỢNG TRONG TAM GIÁC
+### Môn: Toán 10 | Thời gian: 45 phút | Năm học: 2025 – 2026 | Cấu trúc theo đề tham khảo THPT Quốc gia 2026
+
+**Họ và tên học sinh:** .......................................................................... **Lớp:** .............
+
+---
+
+## PHẦN I. Câu trắc nghiệm nhiều phương án lựa chọn
+*Thí sinh trả lời từ câu 1 đến câu 4. Mỗi câu chỉ chọn một phương án đúng.*
+
+Câu 1. Cho tam giác $ABC$ có $BC=a, AC=b, AB=c$. Theo định lí sin trong tam giác, mệnh đề nào sau đây đúng?
+A. $\\dfrac{a}{\\sin A}=\\dfrac{b}{\\sin B}=\\dfrac{c}{\\sin C}=2R$
+B. $\\dfrac{a}{\\sin A}=\\dfrac{b}{\\sin B}=\\dfrac{c}{\\sin C}=R$
+C. $a\\sin A=b\\sin B=c\\sin C=2R$
+D. $\\dfrac{a}{\\cos A}=\\dfrac{b}{\\cos B}=\\dfrac{c}{\\cos C}=2R$
+Đáp án: A
+
+Câu 2. Tam giác $ABC$ có $a=7, b=8, c=5$. Giá trị $\\cos A$ bằng:
+A. $0,5$
+B. $0,25$
+C. $-0,5$
+D. $1$
+Đáp án: A
+Lời giải
+Áp dụng hệ quả định lí Cosin: $\\cos A=\\dfrac{b^2+c^2-a^2}{2bc}=\\dfrac{64+25-49}{2\\cdot8\\cdot5}=\\dfrac{40}{80}=0,5$.
+
+Câu 3. Công thức nào sau đây dùng để tính diện tích tam giác $ABC$?
+A. $S=\\dfrac{1}{2}ab\\sin C$
+B. $S=\\dfrac{1}{2}ab\\cos C$
+C. $S=ab\\sin C$
+D. $S=\\dfrac{1}{2}(a+b)\\sin C$
+Đáp án: A
+
+Câu 4. Tam giác $ABC$ có $a=6$ và $\\widehat{A}=30^\\circ$. Bán kính đường tròn ngoại tiếp tam giác bằng:
+A. $3$
+B. $6$
+C. $12$
+D. $4$
+Đáp án: B
+Lời giải
+Theo định lí sin: $2R=\\dfrac{a}{\\sin A}=\\dfrac{6}{\\sin 30^\\circ}=\\dfrac{6}{0,5}=12 \\Rightarrow R=6$.
+
+## PHẦN II. Câu trắc nghiệm đúng sai
+*Thí sinh trả lời câu 5. Trong mỗi ý a), b), c), d), chọn đúng hoặc sai.*
+
+Câu 5. Cho tam giác $ABC$ có $a=13, b=14, c=15$.
+a) Nửa chu vi của tam giác là $p=21$.
+b) Diện tích tam giác (theo công thức Heron) bằng $84$.
+c) Bán kính đường tròn nội tiếp tam giác là $r=4$.
+d) Bán kính đường tròn ngoại tiếp tam giác là $R=8$.
+Đáp án: a, b, c
+Lời giải
+$p=\\dfrac{13+14+15}{2}=21$. Theo Heron: $S=\\sqrt{p(p-a)(p-b)(p-c)}=\\sqrt{21\\cdot8\\cdot7\\cdot6}=\\sqrt{7056}=84$. Bán kính nội tiếp $r=\\dfrac{S}{p}=\\dfrac{84}{21}=4$. Bán kính ngoại tiếp $R=\\dfrac{abc}{4S}=\\dfrac{13\\cdot14\\cdot15}{4\\cdot84}=8,125\\neq8$, nên ý d) sai.
+
+## PHẦN III. Câu trắc nghiệm trả lời ngắn
+*Thí sinh trả lời từ câu 6 đến câu 8.*
+
+Câu 6. Tam giác $ABC$ có $AB=5, AC=8, \\widehat{A}=60^\\circ$. Tính độ dài cạnh $BC$.
+<Key=7>
+Lời giải
+$BC^2=AB^2+AC^2-2\\cdot AB\\cdot AC\\cdot\\cos A=25+64-2\\cdot5\\cdot8\\cdot0,5=49 \\Rightarrow BC=7$.
+
+Câu 7. Tam giác $ABC$ vuông tại $A$ có $AB=6, AC=8$. Tính bán kính đường tròn ngoại tiếp tam giác (làm tròn đến hàng đơn vị).
+<Key=5>
+Lời giải
+$BC=\\sqrt{AB^2+AC^2}=\\sqrt{36+64}=10$. Vì tam giác vuông tại $A$ nên $BC$ là đường kính đường tròn ngoại tiếp, suy ra $R=\\dfrac{BC}{2}=5$.
+
+Câu 8. Một mảnh đất hình tam giác có ba cạnh lần lượt là $3\\,m, 4\\,m, 5\\,m$. Tính diện tích mảnh đất đó (đơn vị $m^2$).
+<Key=6>
+
+*Ghi chú giáo viên: đề mẫu minh hoạ đủ 3 dạng câu hỏi theo cấu trúc THPT Quốc gia 2026 (I – 1 lựa chọn, II – đúng/sai, III – trả lời ngắn), có thể nhân bản và đổi số liệu/chủ đề khác.*`;
+
 const SAMPLE_QBANK=`Câu 1. Phương trình $x^2 - 5x + 6 = 0$ có tổng hai nghiệm bằng:
 A. $2$
 B. $3$
@@ -5108,7 +5408,17 @@ A. $\\dfrac{\\sqrt{3}}{2}$
 B. $\\dfrac{1}{2}$
 C. $1$
 D. $\\dfrac{\\sqrt{2}}{2}$
-Đáp án: B`;
+Đáp án: B
+
+Câu 9. Cho hàm số $y=x^2-4x+3$.
+a) Hàm số có tập xác định là $\\mathbb{R}$.
+b) Đồ thị hàm số có đỉnh là $I(2;-1)$.
+c) Hàm số nghịch biến trên khoảng $(2;+\\infty)$.
+d) Đồ thị hàm số cắt trục hoành tại hai điểm phân biệt.
+Đáp án: a, b, d
+
+Câu 10. Tính $\\displaystyle\\lim_{x\\to 2}\\dfrac{x^2-4}{x-2}$.
+<Key=4>`;
 
 // Populate sample on first open
 document.getElementById('qbank-input').value=SAMPLE_QBANK;
